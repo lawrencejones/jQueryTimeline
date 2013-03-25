@@ -1,4 +1,28 @@
 #///////////////////////////////////////////////////////////////////////////////
+# CREATION - USER FUNCTIONS
+#///////////////////////////////////////////////////////////////////////////////
+
+#Given start/end dates, important intervals ('day' | 'month') and the
+#jQuery object into which to insert the timeline div, do it!
+createEmptyTimeline = (startDate, endDate, interval, jQueryObject) ->
+
+
+#Run createEmptyTimeline with the first variables, then use the populate
+#function to place the array of moments into the current timeline
+createTimelineWithMoments = (startDate, endDate, interval, jQueryObject, moments) ->
+
+
+#With the given moment, insert that information into the (also give) jQuery
+#timeline object
+createMomentAtTimeline = (moment, jQueryTimeline) ->
+
+
+#Iterate through the array of moments, inserting each into the given
+#jQuery timeline object
+insertMomentsIntoTimeline = (moments, jQueryTimeline) ->
+
+
+#///////////////////////////////////////////////////////////////////////////////
 # UTILITIES 
 #///////////////////////////////////////////////////////////////////////////////
 
@@ -72,7 +96,10 @@ getContainer = (spine) ->
 
 #Given the container, grab utils
 getUtils = (container) ->
-	container.data('utils')
+	if container.hasClass('spine')
+		return container.parent().data('utils')
+	else
+		container.data('utils')
 
 
 #Get the next available timelineId
@@ -274,35 +301,21 @@ drawInMarkers = (spine, intervals) ->
 # --dateToMarkerNo(d)      --noOfIntervals()
 # --dateToMarkerLeft(d)    --pctPerInterval()
 
-createMomentDiv = (moment,spine,utils) ->
-	spine.append (makeCircle 10, 'red').css
-		left : utils.dateToMarkerLeft(parseDate(moment.startDate))
+createMomentDot = (date,spine) ->
+	spine.append makeCircle(5,'red')
+			.delay(1400)
+			.css('left',0)
+			.animate {
+				left : getUtils(spine).dateToMarkerLeft(parseDate date)
+			}, {duration : 400}
 
 
+createMoment = (m,spine) ->
+	utils = getUtils spine
+	createMomentDot m.start, spine
 
-#///////////////////////////////////////////////////////////////////////////////
-# CREATION
-#///////////////////////////////////////////////////////////////////////////////
-
-#Given start/end dates, important intervals ('day' | 'month') and the
-#jQuery object into which to insert the timeline div, do it!
-createEmptyTimeline = (startDate, endDate, interval, jQueryObject) ->
-
-
-#Run createEmptyTimeline with the first variables, then use the populate
-#function to place the array of moments into the current timeline
-createTimelineWithMoments = (startDate, endDate, interval, jQueryObject, moments) ->
-
-
-#With the given moment, insert that information into the (also give) jQuery
-#timeline object
-createMomentAtTimeline = (moment, jQueryTimeline) ->
-
-
-#Iterate through the array of moments, inserting each into the given
-#jQuery timeline object
-insertMomentsIntoTimeline = (moments, jQueryTimeline) ->
-
+createMoments = (moments,spine) ->
+	createMoment(m,spine) for m in moments
 
 #///////////////////////////////////////////////////////////////////////////////
 # TESTS
@@ -310,6 +323,7 @@ insertMomentsIntoTimeline = (moments, jQueryTimeline) ->
 
 printCurrentContainerData = (container) ->
 	console.log(getUtils(container).toString())
+
 
 #String format date
 shootMarkerByDate = (d, container, utils) ->
@@ -320,8 +334,7 @@ shootMarkerByDate = (d, container, utils) ->
 			position : 'absolute', backgroundColor : 'black'
 			height : 30, width : 1, marginTop : -15
 		.appendTo(spine)
-	console.log(utils.dateToMarkerNo(parseDate(d)))
-	console.log(utils.dateToMarkerLeft(5))
+
 
 getTestData = ->
 	[
@@ -361,12 +374,13 @@ getTestData = ->
 		start : '2013-03-12', end : '2013-03-17'
 	]
 
-runTests = (container) ->
+runTests = (container, spine) ->
+	utils = getUtils(container)
 	console.log('Printing current container information...\n')
 	printCurrentContainerData(container)
-	console.log('Test selecting date 2013-03-01...')
-	shootMarkerByDate '2013-03-01', container, getUtils(container)
-	#createMomentDiv (getTestData()[0]) container.find('.spine').eq(0) getUtils container
+	#console.log('Test selecting date 2013-03-01...')
+	#shootMarkerByDate '2013-03-01', container, utils
+	createMoments (getTestData()), spine, utils
 
 #Container utils
 # --startDate, endDate, markerLeftBuffer
@@ -380,5 +394,5 @@ $ ->
 	intervals = produceIntervals(testStart, testEnd, 'day')
 	drawInMarkers (spine = drawTimelineSpine container), intervals
 	drawTimelineOriginCircle spine
-	runTests(container)
+	runTests(container, spine)
 
