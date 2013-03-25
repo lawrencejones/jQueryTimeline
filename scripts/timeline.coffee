@@ -16,6 +16,7 @@ setContainerData = (container, start, end, markerLeftBuffer)  ->
 			startDate : start
 			endDate : end
 			markerLeftBuffer : markerLeftBuffer
+			spineWidth : 100 if @spineWidth? #default
 			dateToMarkerNo : (d) ->
 				Math.floor (d-@startDate)/(1000*60*60*24)
 			noOfIntervals : -> 
@@ -23,7 +24,7 @@ setContainerData = (container, start, end, markerLeftBuffer)  ->
 			dateToMarkerLeft : (d) ->
 				(@markerLeftBuffer + @pctPerInterval()*(@dateToMarkerNo d)) + '%'
 			pctPerInterval : ->
-				(100 - @markerLeftBuffer) / @noOfIntervals()
+				(100 - @markerLeftBuffer) / (@noOfIntervals() - 1)
 			toString : -> 
 				"Start : #{@startDate} 
 				\nEnd : #{@endDate}  
@@ -39,8 +40,6 @@ setContainerData = (container, start, end, markerLeftBuffer)  ->
 produceIntervals = (start, end, interval) ->
 	#start and end should be strings of format yyyy-mm-dd
 	start = parseDate start
-	alert(start)
-	alert(start.getDay())
 	end = parseDate end
 	#start and end are now date type
 	result = []
@@ -60,8 +59,9 @@ produceIntervals = (start, end, interval) ->
 		else if interval['day'] == 1
 		 	interval['priority'] = 2
 		 else interval['priority'] = 1
-	console.log(int.toString()) for int in result
+	#console.log(int.toString()) for int in result
 	setPriority(interval) for interval in result
+	console.log('No of Intervals, length of array = ' + result.length)
 	result
 
 
@@ -163,7 +163,9 @@ drawTimelineSpine = (timelineContainer) ->
 		width : 100-(rightBuffer + leftBuffer)+'%'
 	}, {
 		duration : 1000
+		complete : -> tlSpine.find('.intMarker').delay(800).fadeIn(600)
 	}
+	getUtils(timelineContainer).spineWidth = 100-(rightBuffer+leftBuffer)
 	tlSpine
 
 
@@ -216,6 +218,7 @@ buildLabel = (int) ->
 		marginTop : -14, width : 40, marginLeft : -20, textAlign : 'center'
 		height : 'auto', fontFamily : 'Arial', fontSize : '7px'
 		position : 'absolute'
+	.addClass('intMarker')
 	txt = ''
 	switch int.priority
 		when 3 
@@ -232,16 +235,24 @@ buildLabel = (int) ->
 #Given intervals, draw them onto the spine in the correct placement
 #and then call the labelling function
 drawInMarkers = (spine, intervals) ->
+	today = new Date()
+	console.log(today.getMonth())
 	assignCSS = (int) ->
 		switch int.priority
-			when 3 then {w : 3, h : 19, c : 'black'}
-			when 2 then {w : 2, h : 11, c : 'black'}
-			when 1 then {w : 1, h : 5,  c : 'black'}
+			when 3 then r = {w : 3, h : 19, c : 'black'}
+			when 2 then r = {w : 2, h : 11, c : 'black'}
+			when 1 then r = {w : 1, h : 5,  c : 'black'}
+		#console.log(int.date + ' ' + today.getDate())
+		#console.log(int.month + ' ' + today.getMonth())
+		if (int.date == today.getDate()) and (int.month == today.getMonth())
+			r.c = 'blue'
+			#r.h = 15 if r.h < 15
+		return r
 	#start interval marking a percentage away from the leftmost edge of the
 	#spine, find appropriate value by fetching from the container.data
 	utils = getUtils(getContainer(spine))
 	buffer = utils.markerLeftBuffer
-	pctPerInterval = (100-buffer)/(intervals.length-1)
+	pctPerInterval = utils.pctPerInterval() #(100-buffer)/(intervals.length-1)
 	for int, i in intervals
 		pos = 3 + i*pctPerInterval + '%'
 		(mrk = makeMarker assignCSS(int)).css 
@@ -249,15 +260,23 @@ drawInMarkers = (spine, intervals) ->
 		spine.append mrk
 		animateMarker mrk
 		lbl = (buildLabel int)
-		spine.append(lbl.css('left',pos)) if lbl?
+		if lbl?
+			spine.append(lbl.css('left',pos))
+			lbl.hide()
 
 
 #///////////////////////////////////////////////////////////////////////////////
 # DRAWING FUNCTIONS -- CREATING MOMENTS
 #///////////////////////////////////////////////////////////////////////////////
 
+#Container utils
+# --startDate, endDate, markerLeftBuffer
+# --dateToMarkerNo(d)      --noOfIntervals()
+# --dateToMarkerLeft(d)    --pctPerInterval()
 
-
+createMomentDiv = (moment,spine,utils) ->
+	spine.append (makeCircle 10, 'red').css
+		left : utils.dateToMarkerLeft(parseDate(moment.startDate))
 
 
 
@@ -293,21 +312,61 @@ printCurrentContainerData = (container) ->
 	console.log(getUtils(container).toString())
 
 #String format date
-shootMarkerByDate = (d, container) ->
+shootMarkerByDate = (d, container, utils) ->
 	spine = container.find('.spine').eq(0)
 	$(document.createElement('div'))
 		.css
-			left : getUtils(container).dateToMarkerLeft(parseDate('2013-02-01'))
+			left : utils.dateToMarkerLeft(parseDate(d))
 			position : 'absolute', backgroundColor : 'black'
 			height : 30, width : 1, marginTop : -15
 		.appendTo(spine)
+	console.log(utils.dateToMarkerNo(parseDate(d)))
+	console.log(utils.dateToMarkerLeft(5))
+
+getTestData = ->
+	[
+		id : '2'
+		type : 'TUT'
+		name : 'Tutorial sheet 1 - recap and basic objects'
+		start : '2013-01-14', end : '2013-01-21'
+	,
+		id : '4'
+		type : 'TUT'
+		name : 'Tutorial sheet 3 - abstract classes and interfaces'
+		start : '2013-01-28', end : '2013-02-12'
+	,
+		id : '6'
+		type : 'TUT'
+		name : 'Tutorial sheet 5 - exceptions and miscellaneous'
+		start : '2013-02-11', end : '2013-02-18'
+	,
+		id : '8'
+		type : 'TUT'
+		name : 'Live demo code from Part 1 of the course '
+		start : '2013-02-22', end : '2013-03-06'
+	,
+		id : '18'
+		type : 'TUT'
+		name : 'Heaps and AVL trees'
+		start : '2013-03-10', end : '2013-03-17'
+	,
+		id : '17'
+		type : 'TUT'
+		name : 'Tutorial 3 - Trees and BSTs'
+		start : '2013-03-03', end : '2013-03-10'
+	,
+		id : '19'
+		type : 'OT'
+		name : 'Exercise 19'
+		start : '2013-03-12', end : '2013-03-17'
+	]
 
 runTests = (container) ->
 	console.log('Printing current container information...\n')
 	printCurrentContainerData(container)
 	console.log('Test selecting date 2013-03-01...')
-	shootMarkerByDate '2013-03-01', container
-
+	shootMarkerByDate '2013-03-01', container, getUtils(container)
+	#createMomentDiv (getTestData()[0]) container.find('.spine').eq(0) getUtils container
 
 #Container utils
 # --startDate, endDate, markerLeftBuffer
@@ -315,11 +374,11 @@ runTests = (container) ->
 # --dateToMarkerLeft(d)    --pctPerInterval()
 
 $ ->
-	[testStart, testEnd] = ['2013-01-07', '2013-03-22']
+	[testStart, testEnd] = ['2013-01-07', '2013-03-27']
 	container = createTimelineContainer $('#container')
 	setContainerData container, parseDate(testStart), parseDate(testEnd), 3
 	intervals = produceIntervals(testStart, testEnd, 'day')
 	drawInMarkers (spine = drawTimelineSpine container), intervals
 	drawTimelineOriginCircle spine
-	#runTests(container)
+	runTests(container)
 
