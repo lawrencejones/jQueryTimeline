@@ -1,0 +1,184 @@
+//******************************UTILITIES**************************************
+var monthNames = "Jan,Feb,Mar,Apr,May,Jun,Jul,Aug,Sep,Oct,Nov,Dec".split(',');
+var dayNames = "Mon,Tues,Wed,Thrs,Fri,Sat,Sun".split(',');
+
+//Parse a date in yyyy-mm-dd format
+function parseDate(input) {
+  var parts = input.match(/(\d+)/g);
+  // new Date(year, month [, date [, hours[, minutes[, seconds[, ms]]]]])
+  return new Date(parts[0], parts[1]-1, parts[2]); // months are 0-based
+}
+
+function produceIntervals(startDate, endDate, interval) 
+//Given a start date, end date and interval type ('day' | 'month')
+//produce an array of dates to represent as the intervals
+{
+	var daydiff = function (first, second) {
+		return Math.floor((second-first)/(1000*60*60*24));
+	}
+	var first = parseDate(startDate),
+		second = parseDate(endDate);
+	var result = new Array(daydiff(first,second)), i = 0;
+	while (first <= second) {
+		result[i] = {
+			'date'  : first.getDate(),
+			'day'   : dayNames[first.getDay()],
+			'month' : first.getMonth() + 1,
+			'year'  : first.getYear() 
+		};
+		first.setDate(first.getDate()+1);
+		i = i + 1;
+	}
+	return result;
+}
+
+function isSignificant(date) 
+//Given a date, determine if it is a significant marker
+{
+	return (date.getDay()) == 0;
+}
+
+function drawLine(jQueryObject, startDate, endDate, interval) 
+//Given a jQuery object and interval type, draw the initial line with 
+//markers for intervals in the vertical middle and horizontal center of
+//a to-be-created div. jQuery object will be the original div into which
+//we will insert the timeline. Note- line will include circle.
+//Return a jQuery object that is the timeline div (not the actual line)
+{
+	//Create div with class "timeline" and next available timelineID
+	//with position relative
+	var timelineID = 'timeline_' + ($('.timeline').length);
+	$(jQueryObject).append(
+		'<div class="timeline" style="position:relative" id="'+timelineID+'"></div>');
+	$('#'+timelineID)
+		.css({
+			width:'100%',
+			height:'100%',
+		});
+	var timeline = $('#'+timelineID);
+	//Create circle with absolute position of 10% left, auto top/bottom 
+	//margins and animate it's creation
+	timeline
+		.append('<div class="circle" style="visibility:none" id="originCircle"><div>')
+		//create the line div
+		.append('<div class="line"></div>')
+		.append('<div class="intervals"></div>');
+	var diameter = 8, noOfPixels = $('#'+timelineID).width(),
+		line = $('#'+timelineID + ' .line').eq(0), 
+		intervalsDiv = $('#'+timelineID+' .intervals').eq(0),
+		lineAnimationDuration = 2000;
+	$('#originCircle')
+		.css({
+			top:'50%', position:'absolute',
+			left:'100px', marginTop:'auto',
+			marginBottom:'auto',
+			width:0, height:0,
+			opacity:0, borderRadius:'50%', 
+			'-moz-border-radius': '50%',
+			'-webkit-border-radius': '50%',
+			backgroundColor:'black'
+		})
+		.animate({
+			width:diameter+'px', height:diameter+'px',
+			marginTop:-diameter/2+'px',
+			marginLeft:-diameter/2+'px', opacity:1
+		},{
+			duration:300,
+			easing:"easeInBounce"
+		});
+	line.add('#'+timelineID+' .intervals')
+	.css({
+		width:'0px',height:'1px',
+		position:'absolute',left:'100px',
+		marginBottom:'50%',marginTop:'50%',
+		backgroundColor:'black'
+	});
+	line.animate(
+		{width:noOfPixels-150},
+		{easing:'easeOutCubic',duration:lineAnimationDuration}
+	);
+	var intervals = produceIntervals(startDate,endDate,interval),
+		count = 1, noOfIntervals = intervals.length, 
+		pxPerInterval = (noOfPixels-150)/noOfIntervals,
+	    intervalHeight, intervalWidth, intervalColor;
+	while (count <= noOfIntervals) {
+		intervalsDiv.append('<div class="interval" id="prime"></div>');
+		if (intervals[count].getDay() == 0) {
+			intervalHeight = 15;
+			intervalWidth = 2;
+			intervalColor = "blue";
+		} else {
+			intervalHeight = 5;
+			intervalWidth = 1;
+			intervalColor = "black";
+		}
+		$('#prime')
+			.css({
+				left:Math.floor(count*pxPerInterval)+'px',
+				backgroundColor:intervalColor,
+				width:intervalWidth+'px'
+			})
+			.delay((Math.pow((count/noOfIntervals),2)+0.1)*lineAnimationDuration)
+			.animate({
+				marginTop:(-1.25*intervalHeight),
+				height: (2.5*intervalHeight)
+			},{duration:300})
+			.animate({
+				marginTop:-0.5*intervalHeight,
+				height:0.5*intervalHeight
+			},{duration:400})
+			.removeAttr('id');
+		count = count + 1;
+	}
+	
+	
+	
+	//After circle animation, draw line with swing easing across screen
+	//where during the draw, the intervals are added and animated.
+	//Line dimensions- 10% padding either side of div edges
+	//If interval type is month, then add big interval every year, small
+	//interval at every month
+	//If interval type is day, then add big interval at every month & 
+	//small at every day
+	return $('#'+timelineID);
+}
+
+
+//******************************CREATION***************************************
+
+function createEmptyTimeline(startDate, endDate, interval, jQueryObject) 
+//Given a dates (YYYY-MM-DD), interval for markers ('days' | 'months')
+//and the jQuery object (typically a div) to insert the timeline into,
+//creates a timeline in that jQueryObject with those conditions. No moments.
+{
+	var timelineID;
+	//do something
+	return timelineID;
+}
+
+function createTimelineWithMoments(startDate, endDate, interval, jQueryObject, moments)
+//Given first four parameters, use these to create a blank timeline
+//then iterate through 'moments' array and add each moment to the timetable
+{
+	var timelineID = createEmptyTimeline(startDate,endDate,interval,jQueryObject);
+	createMomentsAtTimeline(moments, timelineID);
+	return timelineID;
+}
+
+function createMomentAtTimeline(moment, timelineID) 
+//Given a moment object and timelineID, insert the moment into the correct
+//position in the timeline
+{
+	return //do something;
+}
+
+function createMomentsAtTimeline(moments, timelineID)
+//Given an array of moments, iterate through and add each in turn to
+//timeline 'timelineID'
+{
+	/*for moment in moments {
+		createMomentAtTimeline(moment, timelineID);
+	}*/
+}
+
+//*****************************************************************************
