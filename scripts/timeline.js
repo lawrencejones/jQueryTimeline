@@ -209,7 +209,6 @@
 
   adjustHeights = function(moments) {
     var adjustForClash, downs, m, processLayers, spine, ups, utils, _fn, _fn1, _i, _j, _k, _l, _len, _len1, _len2, _len3;
-    console.log('Does moment 5 clash with 7? ' + moments[4].inHorizontalRange(moments[6]));
     spine = moments[0].spine;
     utils = getUtils(spine);
     ups = spine.data('ups');
@@ -336,6 +335,8 @@
       width: m._width,
       left: m._left,
       top: m._top + 'px'
+    }, {
+      duration: 200
     });
     if (m.startWire.height() !== 0) {
       return m.animateStartWire();
@@ -659,28 +660,7 @@
     var container, left;
     left = getUtils(spine).dateToMarkerLeft(moment.start);
     spine.append((container = $(document.createElement('div'))));
-    container.addClass('momentInfo').css({
-      position: 'absolute',
-      textAlign: 'left',
-      whiteSpace: 'nowrap',
-      fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif",
-      borderBottomLeftRadius: '4px',
-      borderBottomRightRadius: '4px',
-      borderTopLeftRadius: '4px',
-      borderTopRightRadius: '4px',
-      paddingLeft: '2px',
-      paddingRight: '2px',
-      borderColor: '#636363',
-      fontSize: '10px',
-      borderWidth: '1',
-      borderStyle: 'solid',
-      zIndex: 30,
-      overflow: 'hidden',
-      backgroundColor: 'rgb(221,221,221)',
-      left: left,
-      height: 'auto',
-      width: 'auto'
-    }).click(function() {
+    container.addClass('infoBox').css('left', left).click(function() {
       moment.isExpanded = !moment.isExpanded;
       return adjustHeights(spine.data('moments'));
     }).hover(moment.hoverAnimation["in"], moment.hoverAnimation.out);
@@ -739,8 +719,8 @@
     infoDiv.text(textLine);
     m.collapsed = {
       height: infoDiv.height(),
-      width: infoDiv.width() + 4,
-      marginLeft: (infoDiv.width() + 4) / 2
+      width: infoDiv.width(),
+      marginLeft: (infoDiv.width()) / 2
     };
     infoDiv;
     return processExpanded(m, textLine, infoDiv, structure, utils);

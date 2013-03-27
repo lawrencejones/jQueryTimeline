@@ -250,7 +250,7 @@ updateMomentInfoCSS = (m) ->
 	info.animate {
 		height : m._height, width : m._width
 		left : m._left, top : m._top + 'px'
-	}
+	}, {duration : 200}
 	if m.startWire.height() != 0 then m.animateStartWire()
 
 
@@ -533,16 +533,8 @@ createDurationLine = (moment, utils, color) ->
 createAndPlaceMomentInfo = (moment,spine) ->
 	left = getUtils(spine).dateToMarkerLeft(moment.start)
 	spine.append (container = $(document.createElement('div')))
-	container.addClass('momentInfo')
-	.css
-		position : 'absolute', textAlign : 'left', whiteSpace : 'nowrap'
-		fontFamily : "'Helvetica Neue', Helvetica, Arial, sans-serif"
-		borderBottomLeftRadius : '4px', borderBottomRightRadius:'4px'
-		borderTopLeftRadius : '4px', borderTopRightRadius : '4px'
-		paddingLeft : '2px', paddingRight : '2px'
-		borderColor : '#636363', fontSize : '10px', borderWidth:'1'
-		borderStyle:'solid', zIndex : 30, overflow :'hidden'
-		backgroundColor : 'rgb(221,221,221)', left : left, height: 'auto', width : 'auto'
+	container.addClass('infoBox')
+	.css('left',left)
 	.click ->
 		moment.isExpanded = not moment.isExpanded
 		adjustHeights(spine.data('moments'))
@@ -592,8 +584,8 @@ processTitle = (m, infoDiv, structure, utils) ->
 	infoDiv.text(textLine)
 	m.collapsed = 
 		height : infoDiv.height()
-		width : infoDiv.width() + 4
-		marginLeft : (infoDiv.width() + 4)/2
+		width : infoDiv.width()
+		marginLeft : (infoDiv.width())/2
 	infoDiv
 	processExpanded(m, textLine, infoDiv, structure, utils)
 
