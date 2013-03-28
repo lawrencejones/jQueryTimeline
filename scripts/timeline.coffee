@@ -581,47 +581,44 @@ processTitle = (m, infoDiv, structure, utils) ->
 		key = structure.title[i]
 		if m[key]? then textLine += m[key] + ':'
 	textLine += m[structure.title[structure.title.length-1]]
-	infoDiv.text(textLine)
+	mainTitle = $(document.createElement('span')).css('display','inline')
+		.text(textLine).addClass('title').appendTo(infoDiv)
+	#infoDiv.text(textLine).html('<span>' + infoDiv.html() + '</span>')
 	m.collapsed = 
 		height : infoDiv.height()
 		width : infoDiv.width()
 		marginLeft : (infoDiv.width())/2
-	infoDiv
-	processExpanded(m, textLine, infoDiv, structure, utils)
+	processExpanded m, mainTitle, infoDiv, structure, utils
 
 # ...and processExpanded will take on the expanded view. CSS properties for
 # the collapsed and expanded states will be stored in the moment
 # object under either collapsed{} or expanded{} respectively
-processExpanded = (m, textLine, infoDiv, structure, utils) ->
+processExpanded = (m, mainTitle, infoDiv, structure, utils) ->
+	infoDiv.html(infoDiv.html() + '<br>')
+	content = $(document.createElement('span')).css
+			whiteSpace:'nowrap', fontSize:'10px'
+			fontFamily : "'Helvetica Neue', Helvetica, Arial, sans-serif"
+		.appendTo(infoDiv)
 	if structure.extendedTitle.length != 0
 		textLine += ' - '
 		for i in [0..structure.extendedTitle.length-2]
 			key = structure.extendedTitle[i]
 			if m.key? then textLine += m[key] + ', '
 		textLine += m[structure.extendedTitle[structure.extendedTitle.length-1]]
-	textLine += "\n"
+	mainTitle.text(textLine)
+	textLine = ''
 	for i in [0..structure.content.length-2]
 		key = structure.content[i]
 		if m[key]? then textLine += (m[key] + ' / ')
 	textLine += m[structure.content[structure.content.length-1]]
-	infoDiv.text(textLine)
-	infoDiv.html(infoDiv.html().replace('\n','<br>'))
-	str = ''
-	(-> str = line if line.length > str.length) line, i for line in textLine.split('\n')
-	tmpSpan = $('<span></span>')
-	width = tmpSpan.css
-		display:'none', whiteSpace:'nowrap', fontSize:'10px'
-		fontFamily : "'Helvetica Neue', Helvetica, Arial, sans-serif"
-		padding : '4px'
-	.appendTo($('body')).text(str).width() + 'px'
-	height = tmpSpan.html('<br><br>').height()
-	tmpSpan.remove()
+	content.text(textLine)
 	#look into multiline()
 	marginLeft = (parseFloat utils.dateToMarkerLeft(m.start) + 
 		parseFloat utils.dateToMarkerLeft(m.end))/2 - infoDiv.width()/2
+	console.log(marginLeft)
 	m.expanded =
-		height : height
-		width : width  #say 40
+		height : infoDiv.height()
+		width : infoDiv.width() 
 		marginLeft : marginLeft
 	infoDiv.css
 		height : m.collapsed.height

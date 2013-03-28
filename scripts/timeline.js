@@ -707,7 +707,7 @@
   };
 
   processTitle = function(m, infoDiv, structure, utils) {
-    var i, key, textLine, _i, _ref;
+    var i, key, mainTitle, textLine, _i, _ref;
     textLine = "";
     for (i = _i = 0, _ref = structure.title.length - 2; 0 <= _ref ? _i <= _ref : _i >= _ref; i = 0 <= _ref ? ++_i : --_i) {
       key = structure.title[i];
@@ -716,18 +716,23 @@
       }
     }
     textLine += m[structure.title[structure.title.length - 1]];
-    infoDiv.text(textLine);
+    mainTitle = $(document.createElement('span')).css('display', 'inline').text(textLine).addClass('title').appendTo(infoDiv);
     m.collapsed = {
       height: infoDiv.height(),
       width: infoDiv.width(),
       marginLeft: (infoDiv.width()) / 2
     };
-    infoDiv;
-    return processExpanded(m, textLine, infoDiv, structure, utils);
+    return processExpanded(m, mainTitle, infoDiv, structure, utils);
   };
 
-  processExpanded = function(m, textLine, infoDiv, structure, utils) {
-    var height, i, key, line, marginLeft, str, tmpSpan, width, _fn, _i, _j, _k, _len, _ref, _ref1, _ref2;
+  processExpanded = function(m, mainTitle, infoDiv, structure, utils) {
+    var content, i, key, marginLeft, textLine, _i, _j, _ref, _ref1;
+    infoDiv.html(infoDiv.html() + '<br>');
+    content = $(document.createElement('span')).css({
+      whiteSpace: 'nowrap',
+      fontSize: '10px',
+      fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif"
+    }).appendTo(infoDiv);
     if (structure.extendedTitle.length !== 0) {
       textLine += ' - ';
       for (i = _i = 0, _ref = structure.extendedTitle.length - 2; 0 <= _ref ? _i <= _ref : _i >= _ref; i = 0 <= _ref ? ++_i : --_i) {
@@ -738,7 +743,8 @@
       }
       textLine += m[structure.extendedTitle[structure.extendedTitle.length - 1]];
     }
-    textLine += "\n";
+    mainTitle.text(textLine);
+    textLine = '';
     for (i = _j = 0, _ref1 = structure.content.length - 2; 0 <= _ref1 ? _j <= _ref1 : _j >= _ref1; i = 0 <= _ref1 ? ++_j : --_j) {
       key = structure.content[i];
       if (m[key] != null) {
@@ -746,33 +752,12 @@
       }
     }
     textLine += m[structure.content[structure.content.length - 1]];
-    infoDiv.text(textLine);
-    infoDiv.html(infoDiv.html().replace('\n', '<br>'));
-    str = '';
-    _ref2 = textLine.split('\n');
-    _fn = function() {
-      if (line.length > str.length) {
-        return str = line;
-      }
-    };
-    for (_k = 0, _len = _ref2.length; _k < _len; _k++) {
-      line = _ref2[_k];
-      _fn(line, i);
-    }
-    tmpSpan = $('<span></span>');
-    width = tmpSpan.css({
-      display: 'none',
-      whiteSpace: 'nowrap',
-      fontSize: '10px',
-      fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif",
-      padding: '4px'
-    }).appendTo($('body')).text(str).width() + 'px';
-    height = tmpSpan.html('<br><br>').height();
-    tmpSpan.remove();
+    content.text(textLine);
     marginLeft = (parseFloat(utils.dateToMarkerLeft(m.start) + parseFloat(utils.dateToMarkerLeft(m.end)))) / 2 - infoDiv.width() / 2;
+    console.log(marginLeft);
     m.expanded = {
-      height: height,
-      width: width,
+      height: infoDiv.height(),
+      width: infoDiv.width(),
       marginLeft: marginLeft
     };
     return infoDiv.css({
