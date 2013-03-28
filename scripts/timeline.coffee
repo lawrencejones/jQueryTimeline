@@ -185,7 +185,7 @@ adjustHeights = (moments) ->
 	#should alter width, height and marginLeft properties
 	for m in moments
 		if m.isExpanded  
-			m._marginLeft = m.collapsed.marginLeft	
+			m._marginLeft = m.expanded.marginLeft	
 			m._width = m.expanded.width
 			m._height = m.expanded.height
 		else
@@ -207,16 +207,16 @@ adjustHeights = (moments) ->
 			dates.push(setPriority lowestDate)
 			lowestDate.setDate(lowestDate.getDate() + 1)
 		m.priority = Math.max dates...
-		#console.log('From ' + dates + ' we got ' + m.priority)
+		console.log('From ' + dates + ' we got ' + m.priority)
 	) m for m in moments
 	## Depending on priority and direction assign first top value
 	( (m) -> 
 		_top = 0
 		if m.up 
 			switch m.priority
-				when 3 then _top = -25
-				when 2 then _top = -20
-				when 1 then _top = -13
+				when 3 then _top = -35
+				when 2 then _top = -30
+				when 1 then _top = -23
 			_top = _top - parseFloat m._height
 		else
 			switch m.priority
@@ -249,7 +249,7 @@ updateMomentInfoCSS = (m) ->
 	info = m.lblContainer
 	info.animate {
 		height : m._height, width : m._width
-		left : m._left, top : m._top + 'px'
+		marginLeft : m._marginLeft, top : m._top + 'px'
 	}, {duration : 200}
 	if m.startWire.height() != 0 then m.animateStartWire()
 
@@ -294,12 +294,12 @@ parseDate = (input) ->
 createTimelineContainer = (userContainer) ->
 	userContainer.append timelineContainer = $(document.createElement('div'))
 	timelineContainer.attr
-		'id' : getNextId()
-		'class' : 'timelineContainer'
+		id : getNextId()
+		class : 'timelineContainer'
 	.css
-		'position' : 'absolute'
-		'height' : '150px', 'width' : '100%'
-		'backgroundColor'  : 'white'
+		position : 'absolute'
+		minHeight : '150px', height : 'auto', width : '100%'
+		backgroundColor  : 'white'
 
 #------------ DRAW THE TIMELINE SPINE, CALLBACK THE ORIGN CIRCLE --------------
 #Given a timeline container, NB- not user container,
@@ -353,17 +353,20 @@ drawTimelineOriginCircle = (spine) ->
 #------------ SMALL HELPER FUNCTIONS, SELF-EXPLANATORY ------------------------
 #Given a radius and a color, return an jQuery SVG circle element
 #NB- circle positioned dead center, due to center call
-makeCircle = (r, c) ->
+makeCircle = (r, c, boxShadow) ->
+	boxShadow ?= true
 	center circle = $(document.createElement('div'))
-		.css(
+		.css
 			background : c, zIndex : 10
 			height : r+'px', width : r+'px'
+			position : 'absolute'
 			'-moz-border-radius' : r+'px'
 			'-webkit-border-radius' : r+'px'
+	if boxShadow then circle.css
 			'-webkit-box-shadow': '0 0 1px black'
 			'-moz-box-shadow': '0 0 1px black'
 			boxShadow: '0 0 1px black'
-			position : 'absolute')
+	return circle
 
 #Given a jQuery div representing a circle, center it by accounting
 #for it's width and height
@@ -538,6 +541,10 @@ createAndPlaceMomentInfo = (moment,spine) ->
 	.click ->
 		moment.isExpanded = not moment.isExpanded
 		adjustHeights(spine.data('moments'))
+		if moment.isExpanded
+			animateEndWires moment, getUtils(spine)
+		else
+			moment.removeEndWires()
 	.hover moment.hoverAnimation.in, moment.hoverAnimation.out
 	processTitle(moment,container,getUtils(spine).structure,getUtils(spine)).hide()
 	container.css('margin-left',-container.width()/2).data('defaultLeft',left)
@@ -587,18 +594,14 @@ processTitle = (m, infoDiv, structure, utils) ->
 	m.collapsed = 
 		height : infoDiv.height()
 		width : infoDiv.width()
-		marginLeft : (infoDiv.width())/2
+		marginLeft : -(infoDiv.width())/2
 	processExpanded m, mainTitle, infoDiv, structure, utils
 
 # ...and processExpanded will take on the expanded view. CSS properties for
 # the collapsed and expanded states will be stored in the moment
 # object under either collapsed{} or expanded{} respectively
 processExpanded = (m, mainTitle, infoDiv, structure, utils) ->
-	infoDiv.html(infoDiv.html() + '<br>')
-	content = $(document.createElement('span')).css
-			whiteSpace:'nowrap', fontSize:'10px'
-			fontFamily : "'Helvetica Neue', Helvetica, Arial, sans-serif"
-		.appendTo(infoDiv)
+	# Process the extendedTitle parts
 	if structure.extendedTitle.length != 0
 		textLine += ' - '
 		for i in [0..structure.extendedTitle.length-2]
@@ -607,24 +610,65 @@ processExpanded = (m, mainTitle, infoDiv, structure, utils) ->
 		textLine += m[structure.extendedTitle[structure.extendedTitle.length-1]]
 	mainTitle.text(textLine)
 	textLine = ''
+	# Create the new line
+	infoDiv.html(infoDiv.html() + '<br>')
+	# Create content span and assign css, then append
+	content = $(document.createElement('span')).css
+			whiteSpace:'nowrap', fontSize:'10px'
+			fontFamily : "'Helvetica Neue', Helvetica, Arial, sans-serif"
+		.appendTo(infoDiv)
 	for i in [0..structure.content.length-2]
 		key = structure.content[i]
 		if m[key]? then textLine += (m[key] + ' / ')
 	textLine += m[structure.content[structure.content.length-1]]
 	content.text(textLine)
-	#look into multiline()
-	marginLeft = (parseFloat utils.dateToMarkerLeft(m.start) + 
-		parseFloat utils.dateToMarkerLeft(m.end))/2 - infoDiv.width()/2
-	console.log(marginLeft)
+	# Calculate the marginLeft value
+	#  -----------------------   
+	#     S<  k  >|<  k  >E
+	#  ---|    =    marginLeft
 	m.expanded =
 		height : infoDiv.height()
 		width : infoDiv.width() 
-		marginLeft : marginLeft
+		marginLeft : m.collapsed.marginLeft #TODO - sort out centering
 	infoDiv.css
 		height : m.collapsed.height
 		width : m.collapsed.width
 		marginLeft : m.collapsed.marginLeft
 #------------------------------------------------------------------------------
+
+animateEndWires = (m, utils) ->
+	startWire = m.startWire
+	left = parseFloat utils.dateToMarkerLeft m.start
+	right = parseFloat utils.dateToMarkerLeft(m.end)
+	top = m.top() + m.lblHeight()/2
+	verticalHeight = Math.abs(top)
+	if m.up then verticalTop = top else verticalTop = 0
+	vertical = $(document.createElement('div')).css
+		position : 'absolute', width : '1px', backgroundColor : 'black'
+		left : right + '%', height : 0, top : top
+		'-webkit-box-shadow': '0 0 1px red'
+		'-moz-box-shadow': '0 0 1px red', boxShadow: '0 0 1px red'
+	.appendTo(m.spine)
+	horizontal = $(document.createElement('div')).css
+		position : 'absolute', height : '1px', backgroundColor : 'black'
+		left : left + '%', width : 0, top : top
+		'-webkit-box-shadow': '0 0 1px red'
+		'-moz-box-shadow': '0 0 1px red', boxShadow: '0 0 1px red'
+	.appendTo(m.spine)
+	circle = (makeCircle 3, 'black', false).css
+				left : right + '%', top : horizontal.css('top')
+	horizontal.animate {
+		width : (right - left) + '%'
+	}, {complete : ->
+			circle.appendTo(m.spine)
+			vertical.animate {
+				height : verticalHeight, top : verticalTop
+				}, {duration : 200}}
+	m.removeEndWires = ->
+		vertical.remove()
+		horizontal.remove()
+		circle.remove()
+
 
 #///////////////////////////////////////////////////////////////////////////////
 # TESTS
