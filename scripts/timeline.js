@@ -669,17 +669,17 @@
     utils = getUtils(spine);
     startLeft = utils.dateToMarkerLeft(parseDate(moment.start));
     endLeft = utils.dateToMarkerLeft(parseDate(moment.end));
-    spine.append((moment.startDot = makeCircle(7, 'blue')).delay(1400).css('left', 0).animate({
+    spine.append((moment.startDot = makeCircle(7, '#47ACCA')).delay(1400).css('left', 0).animate({
       left: startLeft
     }, {
       duration: 400
     }));
-    spine.append((moment.endDot = makeCircle(7, 'red')).delay(1400).css('left', 0).animate({
+    spine.append((moment.endDot = makeCircle(7, '#E0524E')).delay(1400).css('left', 0).animate({
       left: endLeft
     }, {
       duration: 400
     }).hide());
-    spine.append((moment.duration = createDurationLine(moment, getUtils(spine), 'green')));
+    spine.append((moment.duration = createDurationLine(moment, getUtils(spine), '#5BB35C')));
     spine.append((hoverCircle = makeCircle(14, 'white').css({
       opacity: 0,
       left: startLeft
