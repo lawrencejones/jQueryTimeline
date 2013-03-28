@@ -285,31 +285,31 @@ bindExpandAllToOrigin = (originCircle, moments, spine) ->
 
 
 #------------ SMALL HELPER FUNCTIONS, SELF-EXPLANATORY ------------------------
-#Given a month index, return the months name
+# Given a month index, return the months name
 monthNumToName = (m) ->
 	"Jan,Feb,Mar,Apr,May,Jun,Jul,Aug,Sep,Aug,Nov,Dec".split(',')[m]
 
-#Given an array of moments, sort them by their start date
+# Given an array of moments, sort them by their start date
 sortMoments = (moments) ->
 	moments.sort((a,b) -> 
 		if parseDate(a.start) < parseDate(b.start) then -1 else 1)
 	
-#Given a spine, will return the owning container. Helps keep code in context
+# Given a spine, will return the owning container. Helps keep code in context
 getContainer = (spine) ->
 	spine.parent()
 
-#Given the container, grab utils
+# Given the container, grab utils
 getUtils = (container) ->
 	if container.hasClass('spine')
 		return container.parent().data('utils')
 	else
 		container.data('utils')
 
-#Get the next available timelineId
+# Get the next available timelineId
 getNextId = ->
 	'timeline_' + $('.timeline').length + 1
 
-#Given an input of yyyy-mm-dd format create a js date
+# Given an input of yyyy-mm-dd format create a js date
 parseDate = (input) ->
 	parts = input.match(/(\d+)/g)
 	new Date(parts[0], parts[1] - 1, parts[2])
