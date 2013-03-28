@@ -31,7 +31,6 @@ createMomentsAtSpine = (moments, spine) ->
 	spine.data('moments',moments)
 	(m = createMomentAtSpine m, spine) for m in moments
 	moments = assignMomentTopValues moments, spine
-	console.log(moments.length)
 	m.lblContainer.delay(1700).fadeIn {
 		duration : 600
 		complete : -> m.animateStartWire() for m in moments
@@ -162,12 +161,16 @@ assignMomentTopValues = (moments,spine) ->
 			widthOfSpinePxs = (@spine.data('widthPct')/100*@spine.parent().width())
 			100*(leftOffset/widthOfSpinePxs) #maybe 2.13...
 		m.inVerticalRange = (m) ->
+			#console.log('Test#1 : ' + @top() + ' ' + m.top() + ' ' + @bottom())
 			(@top() <= m.top() <= @bottom() or
 				@top() <= m.bottom() <= @bottom())
 		m.inHorizontalRange = (m) -> 
-			(parseFloat @leftmost() <= parseFloat m.leftmost() <= parseFloat @rightmost()) or
-				(parseFloat @leftmost() <= parseFloat m.rightmost() <= parseFloat @rightmost())
-		m.clash = (m) -> @inVerticalRange(m) and @inHorizontalRange(m)
+			#console.log(parseFloat(@leftmost()) + ' ' + parseFloat(m.rightmost()) + ' ' + parseFloat(@rightmost()))			
+			a = (parseFloat(@leftmost()) <= parseFloat(m.leftmost()) <= parseFloat(@rightmost()))
+			b = (parseFloat(@leftmost()) <= parseFloat(m.rightmost()) <= parseFloat(@rightmost()))
+			a or b
+		m.clash = (m) -> 
+			@inVerticalRange(m) and @inHorizontalRange(m)
 	) m for m in moments
 	# Next step - process layer values of each label...
 	adjustHeights(moments)
@@ -207,7 +210,7 @@ adjustHeights = (moments) ->
 			dates.push(setPriority lowestDate)
 			lowestDate.setDate(lowestDate.getDate() + 1)
 		m.priority = Math.max dates...
-		console.log('From ' + dates + ' we got ' + m.priority)
+		#console.log('From ' + dates + ' we got ' + m.priority)
 	) m for m in moments
 	## Depending on priority and direction assign first top value
 	( (m) -> 
@@ -230,9 +233,10 @@ adjustHeights = (moments) ->
 		clashedWith = (m for m in others when crrt.clash(m))
 		if clashedWith.length > 0
 			if not m.up
-				crrt._top = clashedWith[0]._top + 4 + crrt._height
+				console.log(clashedWith[0]._height)
+				crrt._top = clashedWith[0]._top + 8 + crrt._height
 			else
-				crrt._top = clashedWith[0]._top - 4 - crrt._height
+				crrt._top = clashedWith[0]._top - 8 - crrt._height
 			adjustForClash crrt, others
 	processLayers = (moments) ->
 		for m,i in moments
@@ -251,6 +255,15 @@ updateMomentInfoCSS = (m) ->
 		height : m._height, width : m._width
 		marginLeft : m._marginLeft, top : m._top + 'px'
 	}, {duration : 200}
+	if m.vertical?
+		top = m.top() + m.lblHeight()/2
+		verticalHeight = Math.abs(top)
+		if m.up then verticalTop = top else verticalTop = 0
+		m.vertical.animate {
+			top : verticalTop, height : verticalHeight
+		}, {duration : 200}
+		m.horizontal.animate {top : top}, {duration : 200}
+		m.circle.animate {top : top}, {duration : 200}
 	if m.startWire.height() != 0 then m.animateStartWire()
 
 
@@ -297,7 +310,7 @@ createTimelineContainer = (userContainer) ->
 		id : getNextId()
 		class : 'timelineContainer'
 	.css
-		position : 'absolute'
+		position : 'absolute', minWidth : '500px'
 		minHeight : '150px', height : 'auto', width : '100%'
 		backgroundColor  : 'white'
 
@@ -630,6 +643,7 @@ processExpanded = (m, mainTitle, infoDiv, structure, utils) ->
 		height : infoDiv.height()
 		width : infoDiv.width() 
 		marginLeft : m.collapsed.marginLeft #TODO - sort out centering
+	#console.log(infoDiv.height() + ' ' + infoDiv.width() + ' ' + m.collapsed.marginLeft)
 	infoDiv.css
 		height : m.collapsed.height
 		width : m.collapsed.width
@@ -643,31 +657,31 @@ animateEndWires = (m, utils) ->
 	top = m.top() + m.lblHeight()/2
 	verticalHeight = Math.abs(top)
 	if m.up then verticalTop = top else verticalTop = 0
-	vertical = $(document.createElement('div')).css
+	m.vertical = $(document.createElement('div')).css
 		position : 'absolute', width : '1px', backgroundColor : 'black'
 		left : right + '%', height : 0, top : top
 		'-webkit-box-shadow': '0 0 1px red'
 		'-moz-box-shadow': '0 0 1px red', boxShadow: '0 0 1px red'
 	.appendTo(m.spine)
-	horizontal = $(document.createElement('div')).css
+	m.horizontal = $(document.createElement('div')).css
 		position : 'absolute', height : '1px', backgroundColor : 'black'
 		left : left + '%', width : 0, top : top
 		'-webkit-box-shadow': '0 0 1px red'
 		'-moz-box-shadow': '0 0 1px red', boxShadow: '0 0 1px red'
 	.appendTo(m.spine)
-	circle = (makeCircle 3, 'black', false).css
-				left : right + '%', top : horizontal.css('top')
-	horizontal.animate {
+	m.circle = (makeCircle 3, 'black', false).css
+				left : right + '%', top : m.horizontal.css('top')
+	m.horizontal.animate {
 		width : (right - left) + '%'
 	}, {complete : ->
-			circle.appendTo(m.spine)
-			vertical.animate {
+			m.circle.appendTo(m.spine)
+			m.vertical.animate {
 				height : verticalHeight, top : verticalTop
 				}, {duration : 200}}
 	m.removeEndWires = ->
-		vertical.remove()
-		horizontal.remove()
-		circle.remove()
+		m.vertical.remove()
+		m.horizontal.remove()
+		m.circle.remove()
 
 
 #///////////////////////////////////////////////////////////////////////////////

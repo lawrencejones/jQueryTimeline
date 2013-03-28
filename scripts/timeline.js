@@ -27,7 +27,6 @@
       m = createMomentAtSpine(m, spine);
     }
     moments = assignMomentTopValues(moments, spine);
-    console.log(moments.length);
     _results = [];
     for (_j = 0, _len1 = moments.length; _j < _len1; _j++) {
       m = moments[_j];
@@ -194,7 +193,10 @@
         return (this.top() <= (_ref2 = m.top()) && _ref2 <= this.bottom()) || (this.top() <= (_ref3 = m.bottom()) && _ref3 <= this.bottom());
       };
       m.inHorizontalRange = function(m) {
-        return (parseFloat(this.leftmost() <= parseFloat(m.leftmost() <= parseFloat(this.rightmost())))) || (parseFloat(this.leftmost() <= parseFloat(m.rightmost() <= parseFloat(this.rightmost()))));
+        var a, b, _ref2, _ref3;
+        a = (parseFloat(this.leftmost()) <= (_ref2 = parseFloat(m.leftmost())) && _ref2 <= parseFloat(this.rightmost()));
+        b = (parseFloat(this.leftmost()) <= (_ref3 = parseFloat(m.rightmost())) && _ref3 <= parseFloat(this.rightmost()));
+        return a || b;
       };
       return m.clash = function(m) {
         return this.inVerticalRange(m) && this.inHorizontalRange(m);
@@ -238,8 +240,7 @@
         dates.push(setPriority(lowestDate));
         lowestDate.setDate(lowestDate.getDate() + 1);
       }
-      m.priority = Math.max.apply(Math, dates);
-      return console.log('From ' + dates + ' we got ' + m.priority);
+      return m.priority = Math.max.apply(Math, dates);
     };
     for (_j = 0, _len1 = moments.length; _j < _len1; _j++) {
       m = moments[_j];
@@ -293,9 +294,10 @@
       })();
       if (clashedWith.length > 0) {
         if (!m.up) {
-          crrt._top = clashedWith[0]._top + 4 + crrt._height;
+          console.log(clashedWith[0]._height);
+          crrt._top = clashedWith[0]._top + 8 + crrt._height;
         } else {
-          crrt._top = clashedWith[0]._top - 4 - crrt._height;
+          crrt._top = clashedWith[0]._top - 8 - crrt._height;
         }
         return adjustForClash(crrt, others);
       }
@@ -329,7 +331,7 @@
   };
 
   updateMomentInfoCSS = function(m) {
-    var info;
+    var info, top, verticalHeight, verticalTop;
     info = m.lblContainer;
     info.animate({
       height: m._height,
@@ -339,6 +341,31 @@
     }, {
       duration: 200
     });
+    if (m.vertical != null) {
+      top = m.top() + m.lblHeight() / 2;
+      verticalHeight = Math.abs(top);
+      if (m.up) {
+        verticalTop = top;
+      } else {
+        verticalTop = 0;
+      }
+      m.vertical.animate({
+        top: verticalTop,
+        height: verticalHeight
+      }, {
+        duration: 200
+      });
+      m.horizontal.animate({
+        top: top
+      }, {
+        duration: 200
+      });
+      m.circle.animate({
+        top: top
+      }, {
+        duration: 200
+      });
+    }
     if (m.startWire.height() !== 0) {
       return m.animateStartWire();
     }
@@ -388,6 +415,7 @@
       "class": 'timelineContainer'
     }).css({
       position: 'absolute',
+      minWidth: '500px',
       minHeight: '150px',
       height: 'auto',
       width: '100%',
@@ -781,7 +809,7 @@
   };
 
   animateEndWires = function(m, utils) {
-    var circle, horizontal, left, right, startWire, top, vertical, verticalHeight, verticalTop;
+    var left, right, startWire, top, verticalHeight, verticalTop;
     startWire = m.startWire;
     left = parseFloat(utils.dateToMarkerLeft(m.start));
     right = parseFloat(utils.dateToMarkerLeft(m.end));
@@ -792,7 +820,7 @@
     } else {
       verticalTop = 0;
     }
-    vertical = $(document.createElement('div')).css({
+    m.vertical = $(document.createElement('div')).css({
       position: 'absolute',
       width: '1px',
       backgroundColor: 'black',
@@ -803,7 +831,7 @@
       '-moz-box-shadow': '0 0 1px red',
       boxShadow: '0 0 1px red'
     }).appendTo(m.spine);
-    horizontal = $(document.createElement('div')).css({
+    m.horizontal = $(document.createElement('div')).css({
       position: 'absolute',
       height: '1px',
       backgroundColor: 'black',
@@ -814,16 +842,16 @@
       '-moz-box-shadow': '0 0 1px red',
       boxShadow: '0 0 1px red'
     }).appendTo(m.spine);
-    circle = (makeCircle(3, 'black', false)).css({
+    m.circle = (makeCircle(3, 'black', false)).css({
       left: right + '%',
-      top: horizontal.css('top')
+      top: m.horizontal.css('top')
     });
-    horizontal.animate({
+    m.horizontal.animate({
       width: (right - left) + '%'
     }, {
       complete: function() {
-        circle.appendTo(m.spine);
-        return vertical.animate({
+        m.circle.appendTo(m.spine);
+        return m.vertical.animate({
           height: verticalHeight,
           top: verticalTop
         }, {
@@ -832,9 +860,9 @@
       }
     });
     return m.removeEndWires = function() {
-      vertical.remove();
-      horizontal.remove();
-      return circle.remove();
+      m.vertical.remove();
+      m.horizontal.remove();
+      return m.circle.remove();
     };
   };
 
