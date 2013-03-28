@@ -24,6 +24,7 @@ createTimelineWithMoments = (startDate, endDate, interval, jQueryObject, moments
 		startDate, endDate, interval 
 		jQueryObject, structure )
 	createMomentsAtSpine moments, spine
+	bindExpandAllToOrigin spine.parent().data('originCircle'), moments, spine
 
 # With the given moment, insert that information into the (also given) 
 # spine object
@@ -267,6 +268,21 @@ updateMomentInfoCSS = (m) ->
 	if m.startWire.height() != 0 then m.animateStartWire()
 
 
+bindExpandAllToOrigin = (originCircle, moments, spine) ->
+	originCircle
+		.data('clicked',true)
+		.click -> 
+			e = originCircle.data('clicked')
+			m.isExpanded = e for m in moments
+			if e
+				adjustHeights moments
+				animateEndWires m, getUtils(spine) for m in moments
+			else
+				adjustHeights moments
+				m.removeEndWires() for m in moments
+			originCircle.data('clicked',not e)
+
+
 #------------ SMALL HELPER FUNCTIONS, SELF-EXPLANATORY ------------------------
 #Given a month index, return the months name
 monthNumToName = (m) ->
@@ -352,15 +368,15 @@ drawTimelineSpine = (timelineContainer, intervals, nextStep, drawCircle) ->
 #return the container for use later
 drawTimelineOriginCircle = (spine) ->
 	container = getContainer(spine)
-	container.append makeCircle(12,'black')
+	circle = makeCircle(12,'black')
 		.addClass('originCircle')
 		.css
 			'opacity' : 0
 			'top' : '50%'
 			'left' : spine.data('leftBuffer') + '%'
-	container.find('.originCircle').animate {
-		'opacity':1
-	},{duration : '300', easing : 'easeInBounce'}
+		.animate {'opacity':1},
+			{duration : '300', easing : 'easeInBounce'}
+	container.data('originCircle',circle).append circle
 	return spine
 
 #------------ SMALL HELPER FUNCTIONS, SELF-EXPLANATORY ------------------------
@@ -557,7 +573,7 @@ createAndPlaceMomentInfo = (moment,spine) ->
 		if moment.isExpanded
 			animateEndWires moment, getUtils(spine)
 		else
-			moment.removeEndWires()
+			moment.removeEndWires()		
 	.hover moment.hoverAnimation.in, moment.hoverAnimation.out
 	processTitle(moment,container,getUtils(spine).structure,getUtils(spine)).hide()
 	container.css('margin-left',-container.width()/2).data('defaultLeft',left)
