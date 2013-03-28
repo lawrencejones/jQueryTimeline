@@ -374,16 +374,27 @@
 
   bindExpandAllToOrigin = function(originCircle, moments, spine) {
     return originCircle.data('clicked', true).click(function() {
-      var e, m, _i, _j, _k, _len, _len1, _len2;
+      var e, m, notExpanded, _i, _j, _k, _len, _len1, _len2;
       e = originCircle.data('clicked');
+      notExpanded = (function() {
+        var _i, _len, _results;
+        _results = [];
+        for (_i = 0, _len = moments.length; _i < _len; _i++) {
+          m = moments[_i];
+          if (!m.isExpanded) {
+            _results.push(m);
+          }
+        }
+        return _results;
+      })();
       for (_i = 0, _len = moments.length; _i < _len; _i++) {
         m = moments[_i];
         m.isExpanded = e;
       }
       if (e) {
         adjustHeights(moments);
-        for (_j = 0, _len1 = moments.length; _j < _len1; _j++) {
-          m = moments[_j];
+        for (_j = 0, _len1 = notExpanded.length; _j < _len1; _j++) {
+          m = notExpanded[_j];
           animateEndWires(m, getUtils(spine));
         }
       } else {

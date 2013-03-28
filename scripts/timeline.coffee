@@ -273,10 +273,11 @@ bindExpandAllToOrigin = (originCircle, moments, spine) ->
 		.data('clicked',true)
 		.click -> 
 			e = originCircle.data('clicked')
+			notExpanded = (m for m in moments when not m.isExpanded)
 			m.isExpanded = e for m in moments
 			if e
 				adjustHeights moments
-				animateEndWires m, getUtils(spine) for m in moments
+				animateEndWires m, getUtils(spine) for m in notExpanded
 			else
 				adjustHeights moments
 				m.removeEndWires() for m in moments
