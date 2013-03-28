@@ -465,7 +465,7 @@
       'position': 'absolute',
       'width': '0%',
       'height': '1px',
-      'margin-top': '50%',
+      'top': '50%',
       'margin-left': leftBuffer + '%',
       'margin-right': rightBuffer + '%',
       'backgroundColor': 'black'
@@ -484,9 +484,10 @@
     var circle, container;
     container = getContainer(spine);
     circle = makeCircle(12, 'black').addClass('originCircle').css({
-      'opacity': 0,
-      'top': '50%',
-      'left': spine.data('leftBuffer') + '%'
+      opacity: 0,
+      cursor: 'pointer',
+      top: '50%',
+      left: spine.data('leftBuffer') + '%'
     }).animate({
       'opacity': 1
     }, {

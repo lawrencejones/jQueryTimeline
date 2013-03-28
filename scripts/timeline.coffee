@@ -347,8 +347,7 @@ drawTimelineSpine = (timelineContainer, intervals, nextStep, drawCircle) ->
 	.css
 		'position' : 'absolute'
 		'width' : '0%', 'height' : '1px'
-		#'margin' : timelineContainer.height()/2+'px'
-		'margin-top' : '50%'
+		'top' : '50%'
 		'margin-left' : leftBuffer+'%', 'margin-right' : rightBuffer + '%'
 		'backgroundColor' : 'black'
 	.animate {
@@ -371,9 +370,9 @@ drawTimelineOriginCircle = (spine) ->
 	circle = makeCircle(12,'black')
 		.addClass('originCircle')
 		.css
-			'opacity' : 0
-			'top' : '50%'
-			'left' : spine.data('leftBuffer') + '%'
+			opacity : 0, cursor : 'pointer'
+			top : '50%'
+			left : spine.data('leftBuffer') + '%'
 		.animate {'opacity':1},
 			{duration : '300', easing : 'easeInBounce'}
 	container.data('originCircle',circle).append circle
