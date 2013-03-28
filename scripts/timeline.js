@@ -790,30 +790,33 @@
   processTitle = function(m, infoDiv, structure, utils) {
     var i, key, mainTitle, textLine, _i, _ref;
     textLine = "";
-    for (i = _i = 0, _ref = structure.title.length - 2; 0 <= _ref ? _i <= _ref : _i >= _ref; i = 0 <= _ref ? ++_i : --_i) {
-      key = structure.title[i];
-      if (m[key] != null) {
-        textLine += m[key] + ':';
+    if (structure.title.length !== 1) {
+      for (i = _i = 0, _ref = structure.title.length - 2; 0 <= _ref ? _i <= _ref : _i >= _ref; i = 0 <= _ref ? ++_i : --_i) {
+        key = structure.title[i];
+        if (m[key] != null) {
+          textLine += m[key] + ':';
+        }
       }
     }
     textLine += m[structure.title[structure.title.length - 1]];
+    console.log("Text line is equal to - " + textLine);
     mainTitle = $(document.createElement('span')).css('display', 'inline').text(textLine).addClass('title').appendTo(infoDiv);
     m.collapsed = {
       height: infoDiv.height(),
       width: infoDiv.width(),
       marginLeft: -(infoDiv.width()) / 2
     };
-    return processExpanded(m, mainTitle, infoDiv, structure, utils);
+    return processExpanded(m, mainTitle, infoDiv, structure, utils, textLine);
   };
 
-  processExpanded = function(m, mainTitle, infoDiv, structure, utils) {
-    var content, i, key, textLine, _i, _j, _ref, _ref1;
+  processExpanded = function(m, mainTitle, infoDiv, structure, utils, textLine) {
+    var content, i, key, _i, _j, _ref, _ref1;
     if (structure.extendedTitle.length !== 0) {
       textLine += ' - ';
       for (i = _i = 0, _ref = structure.extendedTitle.length - 2; 0 <= _ref ? _i <= _ref : _i >= _ref; i = 0 <= _ref ? ++_i : --_i) {
         key = structure.extendedTitle[i];
         if (m.key != null) {
-          textLine += m[key] + ', ';
+          textLine = textLine + m[key] + ', ';
         }
       }
       textLine += m[structure.extendedTitle[structure.extendedTitle.length - 1]];
@@ -907,65 +910,146 @@
   getTestData = function() {
     return [
       {
-        id: '2',
-        type: 'TUT',
-        name: 'Tutorial sheet 1 - recap and basic objects',
-        start: '2013-01-14',
-        end: '2013-01-21',
+        id: '5:TUT',
+        name: 'Mathematical and Strong Induction   ',
+        start: '2013-01-17',
+        end: '2013-01-24',
         spec: 'SPEC',
         givens: 'GIVENS',
         notes: 'NOTES'
       }, {
-        id: '4',
-        type: 'TUT',
-        name: 'Tutorial sheet 3 - abstract classes and interfaces',
-        start: '2013-01-28',
-        end: '2013-02-12',
+        id: '2:PMT',
+        name: 'Well-Founded Induction   ',
+        start: '2013-01-31',
+        end: '2013-02-08',
         spec: 'SPEC',
         givens: 'GIVENS',
         notes: 'NOTES'
       }, {
-        id: '6',
-        type: 'TUT',
-        name: 'Tutorial sheet 5 - exceptions and miscellaneous',
-        start: '2013-02-11',
-        end: '2013-02-18',
+        id: '3:PMT',
+        name: 'Loops   ',
+        start: '2013-02-14',
+        end: '2013-02-22',
         spec: 'SPEC',
         givens: 'GIVENS',
         notes: 'NOTES'
       }, {
-        id: '8',
-        type: 'TUT',
-        name: 'Live demo code from Part 1 of the course ',
-        start: '2013-02-22',
-        end: '2013-03-06',
+        id: '4:PMT',
+        name: 'Loops - Part 2   ',
+        start: '2013-02-28',
+        end: '2013-03-08',
         spec: 'SPEC',
         givens: 'GIVENS',
         notes: 'NOTES'
       }, {
-        id: '18',
-        type: 'TUT',
-        name: 'Heaps and AVL trees',
-        start: '2013-03-10',
-        end: '2013-03-17',
+        id: '17:TUT',
+        name: 'Sorting Flags   ',
+        start: '2013-03-14',
+        end: '2013-03-21',
         spec: 'SPEC',
         givens: 'GIVENS',
         notes: 'NOTES'
       }, {
-        id: '17',
-        type: 'TUT',
-        name: 'Tutorial 3 - Trees and BSTs',
-        start: '2013-03-03',
-        end: '2013-03-10',
+        id: '10:TUT',
+        name: 'Well-Founded Induction   ',
+        start: '2013-01-31',
+        end: '2013-02-07',
         spec: 'SPEC',
         givens: 'GIVENS',
         notes: 'NOTES'
       }, {
-        id: '19',
-        type: 'OT',
-        name: 'Exercise 19',
-        start: '2013-03-12',
-        end: '2013-03-17',
+        id: '8:PMT',
+        name: 'Structural Induction   ',
+        start: '2013-01-24',
+        end: '2013-01-31',
+        spec: 'SPEC',
+        givens: 'GIVENS',
+        notes: 'NOTES'
+      }, {
+        id: '14:TUT',
+        name: 'Loops   ',
+        start: '2013-02-14',
+        end: '2013-02-21',
+        spec: 'SPEC',
+        givens: 'GIVENS',
+        notes: 'NOTES'
+      }, {
+        id: '7:TUT',
+        name: 'Structural Induction   ',
+        start: '2013-01-24',
+        end: '2013-01-31',
+        spec: 'SPEC',
+        givens: 'GIVENS',
+        notes: 'NOTES'
+      }, {
+        id: '12:TUT',
+        name: 'Induction over Recursively Defined Relations   ',
+        start: '2013-02-07',
+        end: '2013-02-14',
+        spec: 'SPEC',
+        givens: 'GIVENS',
+        notes: 'NOTES'
+      }, {
+        id: '1:PMT',
+        name: 'Structural_Induction   ',
+        start: '2013-01-24',
+        end: '2013-02-01',
+        spec: 'SPEC',
+        givens: 'GIVENS',
+        notes: 'NOTES'
+      }, {
+        id: '11:PMT',
+        name: 'Induction over Recursively Defined Relations   ',
+        start: '2013-02-07',
+        end: '2013-02-14',
+        spec: 'SPEC',
+        givens: 'GIVENS',
+        notes: 'NOTES'
+      }, {
+        id: '15:TUT',
+        name: 'Recursion   ',
+        start: '2013-02-21',
+        end: '2013-02-28',
+        spec: 'SPEC',
+        givens: 'GIVENS',
+        notes: 'NOTES'
+      }, {
+        id: '18:CW',
+        name: 'Iterative Quicksort   ',
+        start: '2013-03-14',
+        end: '2013-03-21',
+        spec: 'SPEC',
+        givens: 'GIVENS',
+        notes: 'NOTES'
+      }, {
+        id: '6:PMT',
+        name: 'Mathematical and Strong Induction   ',
+        start: '2013-01-17',
+        end: '2013-01-24',
+        spec: 'SPEC',
+        givens: 'GIVENS',
+        notes: 'NOTES'
+      }, {
+        id: '9:PMT',
+        name: 'Well-Founded Induction   ',
+        start: '2013-01-31',
+        end: '2013-02-07',
+        spec: 'SPEC',
+        givens: 'GIVENS',
+        notes: 'NOTES'
+      }, {
+        id: '13:PMT',
+        name: 'Loops   ',
+        start: '2013-02-14',
+        end: '2013-02-21',
+        spec: 'SPEC',
+        givens: 'GIVENS',
+        notes: 'NOTES'
+      }, {
+        id: '16:TUT',
+        name: 'Binary_Search   ',
+        start: '2013-03-07',
+        end: '2013-03-15',
         spec: 'SPEC',
         givens: 'GIVENS',
         notes: 'NOTES'
@@ -977,8 +1061,8 @@
     var structure, testEnd, testStart, _ref;
     _ref = ['2013-01-07', '2013-03-27'], testStart = _ref[0], testEnd = _ref[1];
     structure = {
-      title: ['id', 'type'],
-      extendedTitle: [],
+      title: ['id'],
+      extendedTitle: ['name'],
       content: ['spec', 'givens', 'notes']
     };
     return createTimelineWithMoments(testStart, testEnd, 'day', $('#container'), getTestData(), structure);
