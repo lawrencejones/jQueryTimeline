@@ -246,6 +246,22 @@ adjustHeights = (moments) ->
 	processLayers ups
 	processLayers downs
 	updateMomentInfoCSS(m) for m in moments
+	findMaxTop = (moments) ->
+		maxt = 0
+		for m in moments
+			t = parseFloat m._top
+			maxt = t if maxt > t
+		return Math.abs maxt
+	findMaxBottom = (moments) ->
+		maxb = 0
+		for m in moments
+			b = parseFloat (m._top + m._height)
+			maxb = b if maxb < b
+		return maxb
+	if moments[0]? 
+		moments[0].spine.parent().animate {
+			height : 2*Math.max(findMaxTop(moments), findMaxBottom(moments)) + 8
+		}, {duration : 200}
 	return moments
 
 #------------ UPDATE A MOMENTS CSS TO THE _ VALUES ----------------------------

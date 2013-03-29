@@ -211,7 +211,7 @@
   };
 
   adjustHeights = function(moments) {
-    var adjustForClash, downs, m, processLayers, spine, ups, utils, _fn, _fn1, _i, _j, _k, _l, _len, _len1, _len2, _len3;
+    var adjustForClash, downs, findMaxBottom, findMaxTop, m, processLayers, spine, ups, utils, _fn, _fn1, _i, _j, _k, _l, _len, _len1, _len2, _len3;
     spine = moments[0].spine;
     utils = getUtils(spine);
     ups = spine.data('ups');
@@ -327,6 +327,37 @@
     for (_l = 0, _len3 = moments.length; _l < _len3; _l++) {
       m = moments[_l];
       updateMomentInfoCSS(m);
+    }
+    findMaxTop = function(moments) {
+      var maxt, t, _len4, _m;
+      maxt = 0;
+      for (_m = 0, _len4 = moments.length; _m < _len4; _m++) {
+        m = moments[_m];
+        t = parseFloat(m._top);
+        if (maxt > t) {
+          maxt = t;
+        }
+      }
+      return Math.abs(maxt);
+    };
+    findMaxBottom = function(moments) {
+      var b, maxb, _len4, _m;
+      maxb = 0;
+      for (_m = 0, _len4 = moments.length; _m < _len4; _m++) {
+        m = moments[_m];
+        b = parseFloat(m._top + m._height);
+        if (maxb < b) {
+          maxb = b;
+        }
+      }
+      return maxb;
+    };
+    if (moments[0] != null) {
+      moments[0].spine.parent().animate({
+        height: 2 * Math.max(findMaxTop(moments), findMaxBottom(moments)) + 8
+      }, {
+        duration: 200
+      });
     }
     return moments;
   };
