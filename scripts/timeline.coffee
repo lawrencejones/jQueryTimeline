@@ -19,7 +19,7 @@ createEmptyTimeline = (startDate, endDate, interval, jQueryObject, structure) ->
 
 # Run createEmptyTimeline with the first variables, then use the populate
 # function to place the array of moments into the current timeline
-createTimelineWithMoments = (startDate, endDate, interval, jQueryObject, moments, structure) ->
+window.createTimelineWithMoments = (startDate, endDate, interval, jQueryObject, moments, structure) ->
 	spine = createEmptyTimeline(
 		startDate, endDate, interval 
 		jQueryObject, structure )
