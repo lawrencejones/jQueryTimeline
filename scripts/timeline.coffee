@@ -1,7 +1,40 @@
 #///////////////////////////////////////////////////////////////////////////////
+#///////////////////////// jQuery Timeline Plugin //////////////////////////////
+#
+# AUTHOR - Lawrence Jones  / GITHUB - www.github.com/lmj112   /   VERSION - 1.0
+#
+# DESCRIPTION - A simple timeline plugin that allows a variety of different
+#               information to be processed and displayed on the timeline. There
+#				is a strong emphasis on event start and termination.
+# 
+# LICENSE - This work is licensed under Creative Commons Attribution-ShareAlike 
+#           3.0 Unported License. To view a copy of this license, visit 
+#           http://creativecommons.org/licenses/by-sa/3.0/. 
+#
+#/////////////// © 2011 Lawrence Jones All Rights Reserved /////////////////////
+
+#///////////////////////////////////////////////////////////////////////////////
 # CREATION - USER FUNCTIONS
 #///////////////////////////////////////////////////////////////////////////////
 
+#--------------- EXPOSED CREATION CALL, HOOKED ON WINDOW -----------------------
+# Run createEmptyTimeline with the first variables, then use the populate
+# function to place the array of moments into the current timeline
+window.createTimelineWithMoments = (startDate, endDate, interval, jQueryObject, moments, structure) ->
+	if startDate? and endDate? and interval? and jQueryObject? and moments? and moments[0]? and structure?
+		spine = createEmptyTimeline(
+			startDate, endDate, interval 
+			jQueryObject, structure )
+		m.spine = spine for m in moments
+		createMomentsAtSpine moments, spine
+		bindExpandAllToOrigin spine.parent().data('originCircle'), moments, spine
+		spine.parent()
+	else
+		console.log "One of the initial variables is invalid."
+		console.log moments.length
+
+
+#--------------- CREATE THE EMPTY TIMELINE INSIDE J_OBJ -----------------------
 # Given start/end dates, important intervals ('day' | 'month'), the
 # jQuery object into which to insert the timeline div and a structure
 # for the moment details content, do it!
@@ -17,31 +50,26 @@ createEmptyTimeline = (startDate, endDate, interval, jQueryObject, structure) ->
 	# create & draw a spine, then draw in the markers and circle
 	spine = drawTimelineSpine container, intervals, drawInMarkers, drawTimelineOriginCircle
 
-# Run createEmptyTimeline with the first variables, then use the populate
-# function to place the array of moments into the current timeline
-window.createTimelineWithMoments = (startDate, endDate, interval, jQueryObject, moments, structure) ->
-	spine = createEmptyTimeline(
-		startDate, endDate, interval 
-		jQueryObject, structure )
-	createMomentsAtSpine moments, spine
-	bindExpandAllToOrigin spine.parent().data('originCircle'), moments, spine
 
+#---------------------- CREATE AND PLACE ALL MOMENTS --------------------------
 # With the given moment, insert that information into the (also given) 
 # spine object
 createMomentsAtSpine = (moments, spine) ->
 	spine.data('moments',moments)
-	(m = createMomentAtSpine m, spine) for m in moments
+	(m = createMomentAtSpine m, spine, getUtils(spine)) for m in moments
 	moments = assignMomentTopValues moments, spine
 	m.lblContainer.delay(1700).fadeIn {
 		duration : 600
 		complete : -> m.animateStartWire() for m in moments
 	} for m in moments
 
+
+#----------------- DEAL WITH A SINGLE MOMENT PLACEMENT ------------------------
 # With the given moment, insert it into the given spine
-createMomentAtSpine = (m, spine) ->
-	utils = getUtils spine
+createMomentAtSpine = (m, spine, utils) ->
 	createAndPlaceMomentDots m, spine
 	createAndPlaceMomentInfo m, spine
+
 
 #//////////////////////////////////////////////////////////////////////////////
 # UTILITIES 
@@ -67,12 +95,12 @@ setContainerData = (container, start, end, markerLeftBuffer, structure)  ->
 				(@markerLeftBuffer + @pctPerInterval()*(@dateToMarkerNo d))+'%'
 			pctPerInterval : ->
 				(100 - @markerLeftBuffer) / (@noOfIntervals() - 1)
-			toString : -> 
-				"Start : #{@startDate} 
-				\nEnd : #{@endDate}  
-				\nMarkers left buffer : #{@markerLeftBuffer} 
-				\nNo Of Intervals : #{@noOfIntervals()}  
-				\nPercent per Interval : #{@pctPerInterval().toFixed(3)}"
+			#toString : -> 
+			#	"Start : #{@startDate} 
+			#	\nEnd : #{@endDate}  
+			#	\nMarkers left buffer : #{@markerLeftBuffer} 
+			#	\nNo Of Intervals : #{@noOfIntervals()}  
+			#	\nPercent per Interval : #{@pctPerInterval().toFixed(3)}"
 
 
 #------------ PRODUCE THE INTERVALS (IE, OBJECT ARRAY) ------------------------
@@ -93,7 +121,7 @@ produceIntervals = (start, end, interval) ->
 			month : start.getMonth()
 			year  : 1900+start.getYear()
 			
-			toString : -> @date + '/' + @month + '/' + @year + ' day is ' + @day
+			#toString : -> @date + '/' + @month + '/' + @year + ' day is ' + @day
 		start.setDate (start.getDate() + 1)
 	setPriority(interval) for interval in result
 	result
@@ -174,12 +202,12 @@ assignMomentTopValues = (moments,spine) ->
 			@inVerticalRange(m) and @inHorizontalRange(m)
 	) m for m in moments
 	# Next step - process layer values of each label...
-	adjustHeights(moments)
+	adjustHeights(moments,spine)
 
 
 #------------ LAYERING PROCESS, FIND CORRECT CSS FOR ALL INFO -----------------
 # Given all the moments, run through, apply layering algorithm. Cross & hope.
-adjustHeights = (moments) -> 
+adjustHeights = (moments,spine) -> 
 	#console.log('Does moment 5 clash with 7? ' + moments[4].inHorizontalRange(moments[6]))
 	spine = moments[0].spine
 	utils = getUtils(spine)
@@ -234,7 +262,7 @@ adjustHeights = (moments) ->
 		clashedWith = (m for m in others when crrt.clash(m))
 		if clashedWith.length > 0
 			if not m.up
-				console.log(clashedWith[0]._height)
+				#console.log(clashedWith[0]._height)
 				crrt._top = clashedWith[0]._top + 8 + crrt._height
 			else
 				crrt._top = clashedWith[0]._top - 8 - crrt._height
@@ -264,6 +292,7 @@ adjustHeights = (moments) ->
 		}, {duration : 200}
 	return moments
 
+
 #------------ UPDATE A MOMENTS CSS TO THE _ VALUES ----------------------------
 # To be run on the finish of layer processing
 updateMomentInfoCSS = (m) ->
@@ -280,10 +309,12 @@ updateMomentInfoCSS = (m) ->
 			top : verticalTop, height : verticalHeight
 		}, {duration : 200}
 		m.horizontal.animate {top : top}, {duration : 200}
-		m.circle.animate {top : top}, {duration : 200}
+		#m.circle.animate {top : top}, {duration : 200}
 	if m.startWire.height() != 0 then m.animateStartWire()
 
-
+#------------ CREATE THE EXPAND ALL FUNCTIONALITY AND BIND IT -----------------
+# Given the origin circle, all moments and the spine, bind an expand all toggle
+# function to the origin circle's event click
 bindExpandAllToOrigin = (originCircle, moments, spine) ->
 	originCircle
 		.data('clicked',true)
@@ -327,6 +358,7 @@ getNextId = ->
 
 # Given an input of yyyy-mm-dd format create a js date
 parseDate = (input) ->
+	if input.getDate? then return input
 	parts = input.match(/(\d+)/g)
 	new Date(parts[0], parts[1] - 1, parts[2])
 #------------------------------------------------------------------------------
@@ -343,9 +375,10 @@ createTimelineContainer = (userContainer) ->
 		id : getNextId()
 		class : 'timelineContainer'
 	.css
-		position : 'absolute', minWidth : '500px'
+		position : 'relative', minWidth : '500px'
 		minHeight : '150px', height : 'auto', width : '100%'
 		backgroundColor  : 'white'
+
 
 #------------ DRAW THE TIMELINE SPINE, CALLBACK THE ORIGN CIRCLE --------------
 #Given a timeline container, NB- not user container,
@@ -376,6 +409,7 @@ drawTimelineSpine = (timelineContainer, intervals, nextStep, drawCircle) ->
 	}
 	nextStep tlSpine, intervals, drawCircle
 
+
 #------------ DRAW THE TIMELINE ORIGIN CIRCLE, RETURN SPINE -------------------
 #Create a circle on the leftmost point of the spine,
 #layering like so...   .timelineContainer #timeline_0n
@@ -391,9 +425,10 @@ drawTimelineOriginCircle = (spine) ->
 			top : '50%'
 			left : spine.data('leftBuffer') + '%'
 		.animate {'opacity':1},
-			{duration : '300', easing : 'easeInBounce'}
+			{duration : '300'}
 	container.data('originCircle',circle).append circle
 	return spine
+
 
 #------------ SMALL HELPER FUNCTIONS, SELF-EXPLANATORY ------------------------
 #Given a radius and a color, return an jQuery SVG circle element
@@ -496,7 +531,7 @@ makeMarker = (properties) ->
 # assign correct CSS properties. Return the $lbl object
 buildLabel = (int) ->
 	lbl = $(document.createElement('div')).css
-		marginTop : -14, width : 40, marginLeft : -20, textAlign : 'center'
+		marginTop : -20, width : 40, marginLeft : -20, textAlign : 'center'
 		height : 'auto', fontFamily : 'Helvetica Neue', fontSize : '7px'
 		position : 'absolute'
 	.addClass('intMarker')
@@ -505,7 +540,7 @@ buildLabel = (int) ->
 		when 3 
 			txt = monthNumToName int.month
 			lbl.css 
-				marginTop : -20
+				marginTop : -28
 				fontSize : 9
 				fontWeight : 'bold'
 		when 2 then txt = 'Mon ' + int.date
@@ -527,13 +562,15 @@ createAndPlaceMomentDots = (moment,spine) ->
 	endLeft = utils.dateToMarkerLeft(parseDate moment.end)
 	spine.append (moment.startDot = makeCircle(7,'#47ACCA'))
 			.delay(1400)
-			.css('left',0)
+			.css
+				left:0, zIndex : 10
 			.animate {
 				left : startLeft
 			}, {duration : 400}
 	spine.append (moment.endDot = makeCircle(7,'#E0524E'))
 			.delay(1400)
-			.css('left',0)
+			.css
+				left:0, zIndex : 11
 			.animate({
 				left : endLeft
 			}, {duration : 400})
@@ -604,10 +641,10 @@ createAndPlaceMomentInfo = (moment,spine) ->
 createAndPlaceMomentStartWire = (moment, spine, left) ->
 	spine.append (startWire = $(document.createElement('div')))
 	startWire.addClass('wire').css
-		position : 'absolute', width : '1', backgroundColor : 'black'
+		position : 'absolute', width : '2', backgroundColor : 'black'
 		left : left   # This will always remain the same, wire won't move
-		top : 0, '-webkit-box-shadow': '0 0 1px blue', height : 0
-		'-moz-box-shadow': '0 0 1px blue', boxShadow: '0 0 1px blue'
+		top : 0, '-webkit-box-shadow': '0 0 2px blue', height : 0
+		'-moz-box-shadow': '0 0 2px blue', boxShadow: '0 0 2px blue'
 	moment.startWire = startWire
 	moment.animateStartWire =  ->
 		if @up
@@ -622,6 +659,45 @@ createAndPlaceMomentStartWire = (moment, spine, left) ->
 # End the function by assigning the jQuery container variable to the
 # moment object for manipulation later
 
+
+#------------- CREATE MOMENT END WIRES AND DETERMINE ANIMATION ----------------
+# Given an moment and the container utils, create the end wire elements and
+# organise the animation for their movement. Attach the animation and a removal
+# function to the moment in question, along with the elements themselves.
+animateEndWires = (m, utils) ->
+	startWire = m.startWire
+	left = ($(startWire).attr('style')).split('left:')[1].split('%')[0] + '%'
+	right = parseFloat utils.dateToMarkerLeft(m.end)
+	top = m.top() + m.lblHeight()/2
+	verticalHeight = Math.abs(top)
+	if m.up then verticalTop = top else verticalTop = 0
+	m.vertical = $(document.createElement('div')).css
+		position : 'absolute', width : '2px', backgroundColor : 'black'
+		left : right + '%', height : 0, top : top
+		'-webkit-box-shadow': '0 0 2px red'
+		'-moz-box-shadow': '0 0 2px red', boxShadow: '0 0 2px red'
+	.appendTo(m.spine)
+	m.horizontal = $(document.createElement('div')).css
+		position : 'absolute', height : '2px', backgroundColor : 'black'
+		left : left, width : 0, top : top
+		'-webkit-box-shadow': '0 0 2px red'
+		'-moz-box-shadow': '0 0 2px red', boxShadow: '0 0 2px red'
+	.appendTo(m.spine)
+	#m.circle = (makeCircle 3, 'black', false).css
+	#			left : right + '%', top : m.horizontal.css('top')
+	m.horizontal.animate {
+		width : (right - parseFloat left) + '%'
+	}, {complete : ->
+			#m.circle.appendTo(m.spine)
+			m.vertical.animate {
+				height : verticalHeight, top : verticalTop
+				}, {duration : 200}}
+	m.removeEndWires = ->
+		m.vertical.remove()
+		m.horizontal.remove()
+		#m.circle.remove()
+
+
 #------------ HELPER FUNCTIONS FOR THE INFO BOX CREATION ----------------------
 # Given an moment, the infoDiv to which it's content should go and container
 # utils, format the moments content using the structure object located
@@ -634,13 +710,12 @@ processTitle = (m, infoDiv, structure, utils) ->
 			key = structure.title[i]
 			if m[key]? then textLine += m[key] + ':'
 	textLine += m[structure.title[structure.title.length-1]]
-	console.log "Text line is equal to - " + textLine
 	mainTitle = $(document.createElement('span')).css('display','inline')
 		.text(textLine).addClass('title').appendTo(infoDiv)
 	#infoDiv.text(textLine).html('<span>' + infoDiv.html() + '</span>')
 	m.collapsed = 
 		height : infoDiv.height()
-		width : infoDiv.width()
+		width : infoDiv.width() + 1
 		marginLeft : -(infoDiv.width())/2
 	processExpanded m, mainTitle, infoDiv, structure, utils, textLine
 
@@ -655,6 +730,7 @@ processExpanded = (m, mainTitle, infoDiv, structure, utils, textLine) ->
 			key = structure.extendedTitle[i]
 			if m.key? then textLine = textLine +  m[key] + ', '
 		textLine += m[structure.extendedTitle[structure.extendedTitle.length-1]]
+		if /^[\s]+$/.test(textLine.split(' - ')[1]) then textLine = textLine.replace(' - ','')
 	mainTitle.text(textLine)
 	textLine = ''
 	# Create the new line
@@ -664,127 +740,34 @@ processExpanded = (m, mainTitle, infoDiv, structure, utils, textLine) ->
 			whiteSpace:'nowrap', fontSize:'10px'
 			fontFamily : "'Helvetica Neue', Helvetica, Arial, sans-serif"
 		.appendTo(infoDiv)
-	for i in [0..structure.content.length-2]
-		key = structure.content[i]
-		if m[key]? then textLine += (m[key] + ' / ')
-	textLine += m[structure.content[structure.content.length-1]]
-	content.text(textLine)
-	# Calculate the marginLeft value
-	#  -----------------------   
-	#     S<  k  >|<  k  >E
-	#  ---|    =    marginLeft
+	addedContent = false
+	if structure.content.names?
+		links = []
+		for linkKey,i in structure.content.links
+			if m[linkKey]?
+				link = $(document.createElement('a'))
+				link.text(structure.content.names[i])
+					.attr('href',m[linkKey])
+				links.push link
+		addedContent = links.length != 0
+		for link,i in links
+			if i != links.length-1
+				link.appendTo(content)
+				content.html(content.html()+ ' / ')
+		if links[0]? then content.append link
+	else
+		for i in [0..structure.content.length-2]
+			key = structure.content[i]
+			if m[key]? then textLine += (m[key] + ' / ')
+		textLine += m[structure.content[structure.content.length-1]]
+		addedContent = true
+		content.text(textLine)
 	m.expanded =
-		height : infoDiv.height()
-		width : infoDiv.width() 
+		height : infoDiv.height() + (if addedContent then 4 else 0)
+		width : infoDiv.width() + (if addedContent then 4 else 0)
 		marginLeft : m.collapsed.marginLeft #TODO - sort out centering
-	#console.log(infoDiv.height() + ' ' + infoDiv.width() + ' ' + m.collapsed.marginLeft)
 	infoDiv.css
 		height : m.collapsed.height
 		width : m.collapsed.width
 		marginLeft : m.collapsed.marginLeft
 #------------------------------------------------------------------------------
-
-animateEndWires = (m, utils) ->
-	startWire = m.startWire
-	left = parseFloat utils.dateToMarkerLeft m.start
-	right = parseFloat utils.dateToMarkerLeft(m.end)
-	top = m.top() + m.lblHeight()/2
-	verticalHeight = Math.abs(top)
-	if m.up then verticalTop = top else verticalTop = 0
-	m.vertical = $(document.createElement('div')).css
-		position : 'absolute', width : '1px', backgroundColor : 'black'
-		left : right + '%', height : 0, top : top
-		'-webkit-box-shadow': '0 0 1px red'
-		'-moz-box-shadow': '0 0 1px red', boxShadow: '0 0 1px red'
-	.appendTo(m.spine)
-	m.horizontal = $(document.createElement('div')).css
-		position : 'absolute', height : '1px', backgroundColor : 'black'
-		left : left + '%', width : 0, top : top
-		'-webkit-box-shadow': '0 0 1px red'
-		'-moz-box-shadow': '0 0 1px red', boxShadow: '0 0 1px red'
-	.appendTo(m.spine)
-	m.circle = (makeCircle 3, 'black', false).css
-				left : right + '%', top : m.horizontal.css('top')
-	m.horizontal.animate {
-		width : (right - left) + '%'
-	}, {complete : ->
-			m.circle.appendTo(m.spine)
-			m.vertical.animate {
-				height : verticalHeight, top : verticalTop
-				}, {duration : 200}}
-	m.removeEndWires = ->
-		m.vertical.remove()
-		m.horizontal.remove()
-		m.circle.remove()
-
-
-#///////////////////////////////////////////////////////////////////////////////
-# TESTS
-#///////////////////////////////////////////////////////////////////////////////
-
-getTestData = ->
-	[
-		id : '5:TUT', name : 'Mathematical and Strong Induction   '
-		start : '2013-01-17', end : '2013-01-24', spec : 'SPEC', givens : 'GIVENS', notes : 'NOTES'
-	,
-		id : '2:PMT', name : 'Well-Founded Induction   '
-		start : '2013-01-31', end : '2013-02-08', spec : 'SPEC', givens : 'GIVENS', notes : 'NOTES'
-	,
-		id : '3:PMT', name : 'Loops   '
-		start : '2013-02-14', end : '2013-02-22', spec : 'SPEC', givens : 'GIVENS', notes : 'NOTES'
-	,
-		id : '4:PMT', name : 'Loops - Part 2   '
-		start : '2013-02-28', end : '2013-03-08', spec : 'SPEC', givens : 'GIVENS', notes : 'NOTES'
-	,
-		id : '17:TUT', name : 'Sorting Flags   '
-		start : '2013-03-14', end : '2013-03-21', spec : 'SPEC', givens : 'GIVENS', notes : 'NOTES'
-	,
-		id : '10:TUT', name : 'Well-Founded Induction   '
-		start : '2013-01-31', end : '2013-02-07', spec : 'SPEC', givens : 'GIVENS', notes : 'NOTES'
-	,
-		id : '8:PMT', name : 'Structural Induction   '
-		start : '2013-01-24', end : '2013-01-31', spec : 'SPEC', givens : 'GIVENS', notes : 'NOTES'
-	,
-		id : '14:TUT', name : 'Loops   '
-		start : '2013-02-14', end : '2013-02-21', spec : 'SPEC', givens : 'GIVENS', notes : 'NOTES'
-	,
-		id : '7:TUT', name : 'Structural Induction   '
-		start : '2013-01-24', end : '2013-01-31', spec : 'SPEC', givens : 'GIVENS', notes : 'NOTES'
-	,
-		id : '12:TUT', name : 'Induction over Recursively Defined Relations   '
-		start : '2013-02-07', end : '2013-02-14', spec : 'SPEC', givens : 'GIVENS', notes : 'NOTES'
-	,
-		id : '1:PMT', name : 'Structural_Induction   '
-		start : '2013-01-24', end : '2013-02-01', spec : 'SPEC', givens : 'GIVENS', notes : 'NOTES'
-	,
-		id : '11:PMT', name : 'Induction over Recursively Defined Relations   '
-		start : '2013-02-07', end : '2013-02-14', spec : 'SPEC', givens : 'GIVENS', notes : 'NOTES'
-	,
-		id : '15:TUT', name : 'Recursion   '
-		start : '2013-02-21', end : '2013-02-28', spec : 'SPEC', givens : 'GIVENS', notes : 'NOTES'
-	,
-		id : '18:CW', name : 'Iterative Quicksort   '
-		start : '2013-03-14', end : '2013-03-21', spec : 'SPEC', givens : 'GIVENS', notes : 'NOTES'
-	,
-		id : '6:PMT', name : 'Mathematical and Strong Induction   '
-		start : '2013-01-17', end : '2013-01-24', spec : 'SPEC', givens : 'GIVENS', notes : 'NOTES'
-	,
-		id : '9:PMT', name : 'Well-Founded Induction   '
-		start : '2013-01-31', end : '2013-02-07', spec : 'SPEC', givens : 'GIVENS', notes : 'NOTES'
-	,
-		id : '13:PMT', name : 'Loops   '
-		start : '2013-02-14', end : '2013-02-21', spec : 'SPEC', givens : 'GIVENS', notes : 'NOTES'
-	,
-		id : '16:TUT', name : 'Binary_Search   '
-		start : '2013-03-07', end : '2013-03-15', spec : 'SPEC', givens : 'GIVENS', notes : 'NOTES'
-	]
-	
-
-$ ->
-	[testStart, testEnd] = ['2013-01-07', '2013-03-27']
-	structure =
-		title : ['id']
-		extendedTitle : ['name']
-		content : ['spec','givens','notes']
-	createTimelineWithMoments testStart, testEnd, 'day', $('#container'), getTestData(), structure
-

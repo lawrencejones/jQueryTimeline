@@ -1,1 +1,1 @@
-coffee -c timeline.coffee
+ls *.coffee | xargs coffee -c
