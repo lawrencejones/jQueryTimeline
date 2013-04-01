@@ -5,149 +5,86 @@
   getTestData = function() {
     return [
       {
-        id: '5:TUT',
-        name: 'Mathematical and Strong Induction   ',
-        start: '2013-01-17',
-        end: '2013-01-24',
-        spec: 'SPEC',
-        givens: 'GIVENS',
-        notes: 'NOTES'
+        id: "2",
+        type: "CW",
+        name: "EX2",
+        handin: "null",
+        start: new Date(1359331200000),
+        end: new Date(1359936000000),
+        spec: "showfile.cgi?key=2012:3:880:c1:SPECS:lmj112",
+        givens: "given.cgi?key=2012:3:491:c1:new:lmj112"
       }, {
-        id: '2:PMT',
-        name: 'Well-Founded Induction   ',
-        start: '2013-01-31',
-        end: '2013-02-08',
-        spec: 'SPEC',
-        givens: 'GIVENS',
-        notes: 'NOTES'
+        id: "5",
+        type: "CW",
+        name: "EX4",
+        handin: "null",
+        start: new Date(1360540800000),
+        end: new Date(1361750400000),
+        spec: "showfile.cgi?key=2012:3:1018:c1:SPECS:lmj112",
+        givens: "given.cgi?key=2012:3:549:c1:new:lmj112"
       }, {
-        id: '3:PMT',
-        name: 'Loops   ',
-        start: '2013-02-14',
-        end: '2013-02-22',
-        spec: 'SPEC',
-        givens: 'GIVENS',
-        notes: 'NOTES'
+        id: "8",
+        type: "TUT",
+        name: "Intel 64 - Tutorial 3",
+        handin: "null",
+        start: new Date(1362355200000),
+        end: new Date(1362960000000),
+        spec: "showfile.cgi?key=2012:3:1181:c1:SPECS:lmj112",
+        givens: "given.cgi?key=2012:3:594:c1:new:lmj112"
       }, {
-        id: '4:PMT',
-        name: 'Loops - Part 2   ',
-        start: '2013-02-28',
-        end: '2013-03-08',
-        spec: 'SPEC',
-        givens: 'GIVENS',
-        notes: 'NOTES'
+        id: "3",
+        type: "CW",
+        name: "EX3",
+        handin: "null",
+        start: new Date(1360022400000),
+        end: new Date(1360540800000),
+        spec: "showfile.cgi?key=2012:3:938:c1:SPECS:lmj112",
+        givens: "given.cgi?key=2012:3:515:c1:new:lmj112"
       }, {
-        id: '17:TUT',
-        name: 'Sorting Flags   ',
-        start: '2013-03-14',
-        end: '2013-03-21',
-        spec: 'SPEC',
-        givens: 'GIVENS',
-        notes: 'NOTES'
+        id: "6",
+        type: "TUT",
+        name: "Intel 64 - Tutorial 1",
+        handin: "null",
+        start: new Date(1361232000000),
+        end: new Date(1361750400000),
+        spec: "showfile.cgi?key=2012:3:1044:c1:SPECS:lmj112",
+        givens: "given.cgi?key=2012:3:558:c1:new:lmj112"
       }, {
-        id: '10:TUT',
-        name: 'Well-Founded Induction   ',
-        start: '2013-01-31',
-        end: '2013-02-07',
-        spec: 'SPEC',
-        givens: 'GIVENS',
-        notes: 'NOTES'
+        id: "1",
+        type: "CW",
+        name: "EX1",
+        handin: "null",
+        start: new Date(1358726400000),
+        end: new Date(1359331200000),
+        spec: "showfile.cgi?key=2012:3:780:c1:SPECS:lmj112",
+        givens: "given.cgi?key=2012:3:437:c1:new:lmj112"
       }, {
-        id: '8:PMT',
-        name: 'Structural Induction   ',
-        start: '2013-01-24',
-        end: '2013-01-31',
-        spec: 'SPEC',
-        givens: 'GIVENS',
-        notes: 'NOTES'
+        id: "4",
+        type: "CW",
+        name: "ASSESSED_EX1",
+        handin: "null",
+        start: new Date(1359936000000),
+        end: new Date(1361232000000),
+        spec: "showfile.cgi?key=2012:3:948:c1:SPECS:lmj112",
+        givens: "null"
       }, {
-        id: '14:TUT',
-        name: 'Loops   ',
-        start: '2013-02-14',
-        end: '2013-02-21',
-        spec: 'SPEC',
-        givens: 'GIVENS',
-        notes: 'NOTES'
+        id: "7",
+        type: "TUT",
+        name: "Intel 64 - Tutorial 2",
+        handin: "null",
+        start: new Date(1361750400000),
+        end: new Date(1362355200000),
+        spec: "showfile.cgi?key=2012:3:1142:c1:SPECS:lmj112",
+        givens: "given.cgi?key=2012:3:582:c1:new:lmj112"
       }, {
-        id: '7:TUT',
-        name: 'Structural Induction   ',
-        start: '2013-01-24',
-        end: '2013-01-31',
-        spec: 'SPEC',
-        givens: 'GIVENS',
-        notes: 'NOTES'
-      }, {
-        id: '12:TUT',
-        name: 'Induction over Recursively Defined Relations   ',
-        start: '2013-02-07',
-        end: '2013-02-14',
-        spec: 'SPEC',
-        givens: 'GIVENS',
-        notes: 'NOTES'
-      }, {
-        id: '1:PMT',
-        name: 'Structural_Induction   ',
-        start: '2013-01-24',
-        end: '2013-02-01',
-        spec: 'SPEC',
-        givens: 'GIVENS',
-        notes: 'NOTES'
-      }, {
-        id: '11:PMT',
-        name: 'Induction over Recursively Defined Relations   ',
-        start: '2013-02-07',
-        end: '2013-02-14',
-        spec: 'SPEC',
-        givens: 'GIVENS',
-        notes: 'NOTES'
-      }, {
-        id: '15:TUT',
-        name: 'Recursion   ',
-        start: '2013-02-21',
-        end: '2013-02-28',
-        spec: 'SPEC',
-        givens: 'GIVENS',
-        notes: 'NOTES'
-      }, {
-        id: '18:CW',
-        name: 'Iterative Quicksort   ',
-        start: '2013-03-14',
-        end: '2013-03-21',
-        spec: 'SPEC',
-        givens: 'GIVENS',
-        notes: 'NOTES'
-      }, {
-        id: '6:PMT',
-        name: 'Mathematical and Strong Induction   ',
-        start: '2013-01-17',
-        end: '2013-01-24',
-        spec: 'SPEC',
-        givens: 'GIVENS',
-        notes: 'NOTES'
-      }, {
-        id: '9:PMT',
-        name: 'Well-Founded Induction   ',
-        start: '2013-01-31',
-        end: '2013-02-07',
-        spec: 'SPEC',
-        givens: 'GIVENS',
-        notes: 'NOTES'
-      }, {
-        id: '13:PMT',
-        name: 'Loops   ',
-        start: '2013-02-14',
-        end: '2013-02-21',
-        spec: 'SPEC',
-        givens: 'GIVENS',
-        notes: 'NOTES'
-      }, {
-        id: '16:TUT',
-        name: 'Binary_Search   ',
-        start: '2013-03-07',
-        end: '2013-03-15',
-        spec: 'SPEC',
-        givens: 'GIVENS',
-        notes: 'NOTES'
+        id: "9",
+        type: "TUT",
+        name: "Floating Point Tutorial",
+        handin: "null",
+        start: new Date(1362960000000),
+        end: new Date(1363564800000),
+        spec: "showfile.cgi?key=2012:3:1220:c1:SPECS:lmj112",
+        givens: "given.cgi?key=2012:3:603:c1:new:lmj112"
       }
     ];
   };
@@ -156,11 +93,14 @@
     var structure, testEnd, testStart, _ref;
     _ref = ['2013-01-07', '2013-03-27'], testStart = _ref[0], testEnd = _ref[1];
     structure = {
-      title: ['id'],
+      title: ['id', 'type'],
       extendedTitle: ['name'],
-      content: ['spec', 'givens', 'notes']
+      content: {
+        names: ['HAND IN', 'SPEC', 'GIVENS'],
+        links: ['handin', 'spec', 'givens']
+      }
     };
-    return createTimelineWithMoments(testStart, testEnd, 'day', $('#container'), getTestData(), structure);
+    return createEmptyTimeline(testStart, testEnd, 'day', $('#container'), getTestData(), structure);
   });
 
 }).call(this);
