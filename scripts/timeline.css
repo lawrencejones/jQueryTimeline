@@ -10,6 +10,8 @@
 	background-color : black;
 }
 
+.origin {cursor : pointer;}
+
 /* Styling for all circles, need absolute and default 10 z-index */
 .circle {
 	position : absolute; 
@@ -59,6 +61,27 @@
 		margin-bottom: -5px;
 	}
 	
+.wire {
+	background-color: black;
+	position : absolute; z-index : 9; 
+	/* behind circles and info_box */
+	top : 0px; left : 0px; height : 0px; width : 0px;
+	/* ^ initial values */
+}
+	.wire.vertical { /* for both vertical and horizontal */
+		width : 2px;
+	}
+	.wire.horizontal {
+		height : 2px;
+	}
+	.wire.start {
+		-webkit-box-shadow : 0 0 2px blue;
+		-mox-box-shadow : 0 0 2px blue;
+		box-shadow : 0 0 2px blue;
+	}
+	.wire.end, .wire.duration {
+		background-color : #E0524E;
+	}
 
 .info_box {
 	position : absolute; text-align : center;
@@ -69,3 +92,4 @@
 	-webkit-box-shadow : 0 0 3px grey; width : auto; height : auto;
 	background-color : #fcfcfc; white-space : nowrap;
 }
+

@@ -41,18 +41,15 @@ SETTINGS = {  # All lefts are percentages
   date_to_marker_left_pct : (d) ->
     (@pct_buffer_for_markers + @pct_per_interval()*
       (@date_to_marker_index parse_date(d)))
-
 }
 
 # Expose the createTimeline function to the window object, allowing access from
 # external scripts. From this function, process the creation of the timeline
 # using the given user options.
 window.create_timeline = (opt) ->
-  # Load in jQuery
   if not $? 
     $('head').append $('<script/ src="http://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js">')
-  # Check required parameters are given
-  if not (opt.destination? && 
+  if not  (opt.destination? && 
           (SETTINGS.start_date = parse_date(opt.start_date))? &&  
           (SETTINGS.end_date = parse_date(opt.end_date))?)
     console.log 'You are missing either destination or timeline start/end dates.'
@@ -65,36 +62,41 @@ window.create_timeline = (opt) ->
     SETTINGS.moments = opt.moments.sort (a,b) -> a.start - b.start
     create_moments SETTINGS.spine
 
-
 create_spine = (destination) ->
 
   draw_origin_circle = ->
-    make_circle(10, 'black')
-      .css('left', 0)
-      
+    circle = make_circle(15, 'black').css('left', 0).hide()
+    circle.hover(
+      -> circle.css('background-color', 'blue')
+      ,
+      -> circle.css('background-color', 'black'))
+    .data('clicked',true)
+    .click ->
+      clicked = circle.data('clicked')
+      m.is_expanded = clicked for m in SETTINGS.moments
+      circle.data('clicked',!clicked)
+      layer_moment_tooltips()
+    return circle
+
   spine_left = SETTINGS.spine_buffer
   SETTINGS.container = $('<div/ class="timeline_container">')
     .appendTo destination
   $('<div/ class="spine">').appendTo(SETTINGS.container)
-    .css 
-      left : spine_left + '%', width : 0
+    .css({left : spine_left + '%', width : 0})
     .animate({ width : 97 - spine_left + '%' }, {duration : 400})
-    .append draw_origin_circle().addClass('origin')
-
+    .append draw_origin_circle().addClass('origin').delay(400).fadeIn(300)
+    
 
 create_interval_markers = (spine) ->
 
   set_priority = (interval) ->
-    if interval.date == 1
-      interval.priority = 3
-    else if interval.day == 1
-      interval.priority = 2
+    if interval.date == 1 then interval.priority = 3
+    else if interval.day == 1 then interval.priority = 2
     else interval.priority = 1
 
   produce_intervals = ->
     # Make copies of the dates to prevent mutation
-    start = parse_date SETTINGS.start_date
-    end = parse_date SETTINGS.end_date
+    [start, end] = [SETTINGS.start_date, SETTINGS.end_date].map parse_date
     #start and end are now date type
     while start <= end
       SETTINGS.intervals.push 
@@ -132,11 +134,11 @@ create_moments = (spine) ->
       SETTINGS.date_to_marker_left_pct(m.start) + '%', 
       SETTINGS.date_to_marker_left_pct(m.end) + '%'
     ]
-    cols = ['#47ACCA', '#E0524E']
+    cols = ['#47ACCA', '#E0524E']  # Dot colors
     m.start_marker = make_circle(7, cols[0]).addClass('start')
       .css('left',s_lft)
     m.end_marker = make_circle(7, cols[1]).addClass('end')
-      .css('left',e_lft).hide()
+      .css('left',e_lft).hide()   # Hide end dot
     spine.append m.start_marker, m.end_marker
 
   create_moment_tooltips = (m) ->
@@ -144,7 +146,6 @@ create_moments = (spine) ->
     produce_collapsed_elem = (m, callback) ->
       text = ''
       text += m[key] + ':' for key in SETTINGS.structure.title
-      console.log text[0..-2]
       m.collapsed = {}
       m.collapsed.elem = $('<div/ class="info_elem collapsed">')
         .text(text[0..-2])
@@ -183,18 +184,24 @@ create_moments = (spine) ->
       [e,c,i] = [m.expanded.elem, m.collapsed.elem, m.info_box]
       # Save the css values of height and width for the different views
       [m.collapsed.css, m.expanded.css] = [css_values(c, i), css_values(e, i)]
-      c.show()  # Show the initial collapsed view
-      # Set the info box css, it's left, margin-left (for centering) and the
-      # w/h values to allow initial smooth animation
+      c.show() 
+      hover_on = ->
+        m.end_marker.fadeIn(200)
+        m.duration_wire.animate {width : m.duration_wire.data('w')}, {duration : 200}
+      hover_off = ->
+        m.end_marker.fadeOut(200)
+        m.duration_wire.animate {width : 0}, {duration : 200}
       i.css
         width : i.width(), height : i.height(), marginLeft : -i.width()/2
         left : SETTINGS.date_to_marker_left_pct(m.start) + '%'
       .click ->
         m.is_expanded = !m.is_expanded
-        layer_moment_tooltips()
+        layer_moment_tooltips() 
+      .hover hover_on, hover_off
 
     add_moment_functionality = (m) ->
       m.bottom = -> @goal_top + @get_projected_css().ih_px
+
       m.get_projected_css = ->
         i = c = m.collapsed
         i = m.expanded if m.is_expanded
@@ -208,6 +215,10 @@ create_moments = (spine) ->
           ilm : leftmost, irm : rightmost
           iw_pct : width_pct, iw_px : iw
         }
+
+      m.remove_end_wires = ->
+        [m.vertical_end_wire.remove(), m.horizontal_end_wire.remove()]
+        [m.vertical_end_wire, m.horizontal_end_wire] = [null,null]
 
       m.set_initial_top = ->
         css = m.get_projected_css()
@@ -232,26 +243,37 @@ create_moments = (spine) ->
     produce_collapsed_elem m, produce_expanded_elem
     create_info_box m
     add_moment_functionality m
+
+  produce_start_wire = (m) ->
+    h = Math.abs((m.goal_top + m.bottom())/2)
+    t = (if m.is_up then -h else 0)
+    m.start_wire = produce_wire(m,m.start)
+      .addClass('vertical start')
+      .delay(800)
+      .animate {height : h, top : t}, {duration : 200}
+
+  produce_duration_wire = (m) ->
+    w = SETTINGS.date_to_marker_left_pct(m.end) -
+        SETTINGS.date_to_marker_left_pct(m.start) + '%'
+    m.duration_wire = produce_wire(m,m.start)
+      .addClass('horizontal duration').data('w',w)
       
   for m,i in SETTINGS.moments
     create_start_end_markers m
     m.is_up = (i%2 == 0)  # Set default up or down
     create_moment_tooltips m
-    m.set_initial_top()
-  $('.info_box').hide().delay(400).fadeIn()  # Hide the info_boxes for now
-  m.info_box.css('top',m.goal_top) for m in SETTINGS.moments
-
-  $('h1').click ->
-    layer_moment_tooltips()
-    cw1 = (m for m in SETTINGS.moments when m.id == "1")[0]
-    cw4 = (m for m in SETTINGS.moments when m.id == "4")[0]
-    console.log 'Does cw1 clash with cw4? ' + cw1.clash_with cw4
-    m.info_box.css('top',m.goal_top) for m in SETTINGS.moments
+    [m.set_initial_top(), m.info_box.css('top',m.goal_top)]
+    produce_start_wire m
+    produce_duration_wire m
+  last_index = (infos = $('.info_box')).length - 1
+  infos.hide().delay(400).fadeIn 200, ->  # Fade in infos...
+    layer_moment_tooltips() if infos.index($(this)) == last_index
+  # On the completion of the fade, apply layering
 
 layer_moment_tooltips = ->
 
   place = (m,fixed,m_css) ->
-    
+
     adjust_height = (m, m_css, cm) ->
       if m.is_up then m.goal_top = cm.goal_top - m_css.ih_px - 10
       else m.goal_top = cm.bottom() + 10
@@ -278,16 +300,50 @@ layer_moment_tooltips = ->
   [ups.sort(comp), downs.sort(comp)].map place_moments
   animate_moments()
 
+draw_end_wires = (m,vh) ->
+  if m.is_expanded and not m.horizontal_end_wire?
+    vt = (if m.is_up then vh else 2)
+    w = SETTINGS.date_to_marker_left_pct(m.end) -
+        SETTINGS.date_to_marker_left_pct(m.start) + '%'
+    m.vertical_end_wire = produce_wire(m,m.end)
+      .addClass('vertical end').css('top',vh)
+    animate_vertical = ->
+      m.vertical_end_wire.animate {
+        height : Math.abs(vh), top : vt
+      }, {duration : 200}
+    m.horizontal_end_wire = produce_wire(m,m.start)
+      .delay(200)
+      .addClass('horizontal end').css('top',vh)
+      .animate {width : w}, {duration : 200, complete : -> animate_vertical()}
 
 animate_moments = ->
-  for m in SETTINGS.moments
-    [e,c,i] = [m.expanded.elem, m.collapsed.elem, m.info_box]
-    if !(m.is_expanded ?= false)
+  ms = SETTINGS.moments
+  for m in ms
+    [e,c,i,css] = [m.expanded.elem, m.collapsed.elem, m.info_box, null]
+    if !(m.is_expanded ?= false)  
       [e.hide(), c.show(), css = m.collapsed.css]
-      i.animate {top : m.goal_top, width : css.w, height : css.h}, {duration : 200}
-    else
-      [c.hide(), e.show(), css = m.expanded.css]
-      i.animate {top : m.goal_top, width : css.w, height : css.h}, {duration : 200}
+    else [c.hide(), e.show(), css = m.expanded.css]
+    i.animate {
+      top : m.goal_top, width : css.w, height : css.h
+    }, {duration : 200}
+    h = (m.goal_top + m.bottom())/2
+    [vt,vh] = (if m.is_up then [h,Math.abs(h)] else [2,Math.abs(h)])
+    m.start_wire.animate {height : vh, top : vt}, {duration : 200}
+    if m.horizontal_end_wire? and m.is_expanded  # Then lines already present
+      m.horizontal_end_wire.animate {top : h}, {duration : 200}
+      m.vertical_end_wire.animate {top : vt, height : vh}, {duration : 200}
+    else if m.is_expanded then draw_end_wires(m,h) 
+    else if m.horizontal_end_wire? then m.remove_end_wires()
+  [t, b] = [Math.min(((m.goal_top) for m in ms)...), Math.max (m.bottom() for m in ms)... ]
+  b += 10
+  height = SETTINGS.container.height()
+  bottom_room = height - parseFloat SETTINGS.spine.css('top')
+  if (1.1*(b-t) > height)
+    height = 1.1*(b-t)
+    SETTINGS.container.animate {height : height}, {duration : 200}
+  else
+    SETTINGS.container.animate {height : 1.1*(b-t)}, {duration : 200}
+  SETTINGS.spine.animate {top : 100*Math.abs(t)/(b-t) + '%'}, {duration : 200}
 
 parse_date = (input) ->
   if input.getDate? then return new Date(input.getTime())
@@ -301,12 +357,17 @@ month_num_to_name = (m) ->
 make_circle = (r, c, shadow) ->
   shadow ?= true   # Default to true
   s = '0 0 1px black'
-  circle = $('<div/ class="circle">')
-    .css
+  circle = $('<div/ class="circle">').css
       background : c, height : r, width : r
       '-moz-border-radius' : r, '-webkit-border-radius' : r
       marginTop : -r/2, marginLeft : -r/2
   if shadow then circle.css
       '-webkit-box-shadow': s, '-moz-box-shadow': s, 'box-shadow' : s
   return circle
+
+produce_wire = (m,d) ->
+  l = SETTINGS.date_to_marker_left_pct d
+  $('<div/ class="wire">')
+    .appendTo(SETTINGS.spine)
+    .css('left', l + '%')
 
