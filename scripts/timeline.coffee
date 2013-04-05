@@ -1,7 +1,8 @@
 #//////////////////////////////////////////////////////////////////////////////
 #///////////////////////// jQuery Timeline Plugin /////////////////////////////
 #
-# AUTHOR - Lawrence Jones  / GITHUB - www.github.com/lmj112   /   VERSION - 1.1
+# AUTHOR - Lawrence Jones
+# VERSION - 1.1 / GITHUB - http://www.github.com/LawrenceJones/jQueryTimeline
 #
 # DESCRIPTION - A simple timeline plugin that allows a variety of different
 #               information to be processed and displayed on the timeline. There
