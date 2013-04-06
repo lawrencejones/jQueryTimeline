@@ -27,7 +27,7 @@ SETTINGS = {  # All lefts are percentages
   structure : {}, moments : []
   pct_buffer_for_markers : 3, spine_buffer : 5
   initial_heights :
-      up   : [-10, -22, -28]
+      up   : [-14, -30, -38]
       down : [  8,  10,  14]
 
   # Return the marker index of the given date
@@ -156,7 +156,7 @@ create_moments = (spine) ->
       expanded = $('<div/ class="info_elem expanded">')
       text = m.collapsed.elem.text() + ' - '
       text += m[key] + ', ' for key in SETTINGS.structure.extendedTitle
-      m.collapsed.elem.clone().addClass('expanded')
+      m.collapsed.elem.clone().addClass('expanded').css('display','block')
         .text(text[0..-3]).appendTo expanded
       text = ''
       names = SETTINGS.structure.content.names
