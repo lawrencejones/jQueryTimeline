@@ -14,7 +14,7 @@
     pct_buffer_for_markers: 3,
     spine_buffer: 5,
     initial_heights: {
-      up: [-10, -22, -28],
+      up: [-14, -30, -38],
       down: [8, 10, 14]
     },
     date_to_marker_index: function(d) {
@@ -29,8 +29,13 @@
   };
 
   window.create_timeline = function(opt) {
+    var jQuery_link, script;
     if (typeof $ === "undefined" || $ === null) {
-      $('head').append($('<script/ src="http://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js">'));
+      jQuery_link = 'http://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js';
+      script = document.createElement('script');
+      script.setAttribute('src', jQuery_link);
+      document.body.appendChild(script);
+      console.log('Adding jQuery');
     }
     if (!((opt.destination != null) && ((SETTINGS.start_date = parse_date(opt.start_date)) != null) && ((SETTINGS.end_date = parse_date(opt.end_date)) != null))) {
       console.log('You are missing either destination or timeline start/end dates.');
@@ -168,7 +173,7 @@
         return callback(m);
       };
       produce_expanded_elem = function(m) {
-        var expanded, i, key, keys, names, text, _i, _j, _len, _len1, _ref;
+        var expanded, href, i, key, keys, link, names, text, _i, _j, _len, _len1, _ref;
         expanded = $('<div/ class="info_elem expanded">');
         text = m.collapsed.elem.text() + ' - ';
         _ref = SETTINGS.structure.extendedTitle;
@@ -176,22 +181,42 @@
           key = _ref[_i];
           text += m[key] + ', ';
         }
-        m.collapsed.elem.clone().addClass('expanded').text(text.slice(0, -2)).appendTo(expanded);
+        m.collapsed.elem.clone().addClass('expanded').css('display', 'block').text(text.slice(0, -2)).appendTo(expanded);
         text = '';
         names = SETTINGS.structure.content.names;
         keys = SETTINGS.structure.content.keys;
         for (i = _j = 0, _len1 = keys.length; _j < _len1; i = ++_j) {
           key = keys[i];
           if (m[key] != null) {
-            $('<a/ class="content_link">').text(names[i]).click(function() {
-              return window.location.href = m[links[i]];
-            }).appendTo(expanded);
+            href = m[key];
+            if (typeof m[key] !== 'string') {
+              href = 'javascript:void(0)';
+            }
+            link = $('<a/ class="content_link">').attr({
+              'href': href,
+              key: key
+            }).text(names[i]).appendTo(expanded);
             expanded.html(expanded.html() + ' / ');
           }
         }
         if (expanded.html().slice(-3) === ' / ') {
           expanded.html(expanded.html().slice(0, -3));
         }
+        expanded.find('a').each(function() {
+          $(this).data('value', m[$(this).attr('key')]);
+          switch (typeof $(this).data('value')) {
+            case 'string':
+              return $(this).bind('click', function(e) {
+                return e.stopPropagation();
+              });
+            case 'object':
+              return $(this).bind('click', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                return $(this).data('value').trigger('click');
+              });
+          }
+        });
         m.expanded = {};
         return m.expanded.elem = expanded;
       };

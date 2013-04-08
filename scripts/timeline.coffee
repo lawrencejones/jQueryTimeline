@@ -49,7 +49,12 @@ SETTINGS = {  # All lefts are percentages
 # using the given user options.
 window.create_timeline = (opt) ->
   if not $? 
-    $('head').append $('<script/ src="http://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js">')
+    jQuery_link = 'http://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js'
+    #jQuery_link = './jQuery.min.js' # Testing only
+    script = document.createElement('script')
+    script.setAttribute('src',jQuery_link)
+    document.body.appendChild(script)
+    console.log 'Adding jQuery'
   if not  (opt.destination? && 
           (SETTINGS.start_date = parse_date(opt.start_date))? &&  
           (SETTINGS.end_date = parse_date(opt.end_date))?)
@@ -163,12 +168,28 @@ create_moments = (spine) ->
       keys = SETTINGS.structure.content.keys
       for key,i in keys
         if m[key]?
-          $('<a/ class="content_link">')
+          href = m[key]
+          if typeof m[key] != 'string'
+            href = 'javascript:void(0)'
+          link = $('<a/ class="content_link">')
+            .attr({'href':href, key:key})
             .text(names[i])
-            .click( -> window.location.href = m[links[i]])
             .appendTo(expanded)
           expanded.html(expanded.html() + ' / ')
       expanded.html(expanded.html()[0..-4]) if expanded.html()[-3..] == ' / '
+      expanded.find('a').each ->
+        $(this).data('value', m[$(this).attr('key')])
+        switch typeof $(this).data('value')
+          when 'string'
+            $(this).bind 'click', (e) -> e.stopPropagation()
+          when 'object'
+            $(this).bind 'click', (e) ->
+              e.preventDefault()
+              e.stopPropagation()
+              $(this).data('value').trigger('click')
+
+        
+      
       m.expanded = {}
       m.expanded.elem = expanded
 
