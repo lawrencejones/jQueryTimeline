@@ -9,7 +9,7 @@
 .spine {
 	position : absolute; height : 1px; top : 50%;
 	background-color : black;
-} .origin {cursor : pointer;}
+} .origin {cursor : pointer; z-index : 99;}
 
 /* Styling for all circles, need absolute and default 10 z-index */
 .circle {
@@ -94,7 +94,7 @@
 	box-shadow : 0 0 3px grey; cursor : pointer; 
 	-webkit-box-shadow : 0 0 3px grey; line-height: 20px;
 	background-color : #fcfcfc; white-space : nowrap;
-	height : auto; width : auto;
+	height : auto; width : auto; min-height: 20px;
 }
 
 .info_elem.collapsed {

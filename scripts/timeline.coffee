@@ -59,19 +59,32 @@ window.create_timeline = (opt) ->
     document.body.appendChild(script)
     console.log 'Adding jQuery'
   default_settings()
-  if not  (opt.destination? && 
-          (SETTINGS.start_date = parse_date(opt.start_date))? &&  
-          (SETTINGS.end_date = parse_date(opt.end_date))?)
+  if not  (opt.destination?)
     console.log 'You are missing either destination or timeline start/end dates.'
+  else if not (opt.start_date? and opt.end_date?) and not opt.moments[0]?
+    console.log 'Cannot determine start and end with no moments'
   else
+    if not opt.start_date?
+      SETTINGS.start_date = 
+        new Date (Math.min (parse_date(m.start) for m in opt.moments)...) - 3*1000*60*60*24
+    else SETTINGS.start_date = opt.start_date
+    if not opt.end_date?
+      SETTINGS.end_date = 
+        new Date (Math.max (parse_date(m.end) for m in opt.moments)...) + 3*1000*60*60*24
+    else SETTINGS.end_date = opt.end_date
+    
     create_interval_markers (SETTINGS.spine = create_spine opt.destination)
     SETTINGS.spine.data('settings',SETTINGS)
-  if opt.moments.length != 0
-    SETTINGS.structure = opt.structure
-    opt.moments.map (m) ->  # Convert all dates to js format
-      [m.start, m.end] = [parse_date(m.start), parse_date(m.end)]
-    SETTINGS.moments = opt.moments.sort (a,b) -> a.start - b.start
-    create_moments SETTINGS.spine
+
+    if opt.moments[0]?
+      if not opt.structure then console.log 'Structure required for building moments'
+      else
+        SETTINGS.structure = opt.structure
+        opt.moments.map (m) ->  # Convert all dates to js format
+          [m.start, m.end] = [parse_date(m.start), parse_date(m.end)]
+        SETTINGS.moments = opt.moments.sort (a,b) -> a.start - b.start
+        create_moments SETTINGS.spine
+  return SETTINGS.container
 
 create_spine = (destination) ->
 
@@ -262,7 +275,7 @@ create_moments = (spine) ->
         m.goal_top = top
 
       m.clash_with = (m) ->
-        vertical = (us, them) -> !((us.t > them.b) or (them.t > us.b))
+        vertical = (us, them) -> !((us.t > them.b-3) or (them.t+3 > us.b))
         horizontal = (us, them) -> !((us.irm < them.ilm) or (them.irm < us.ilm))
         [us, them] = [@get_projected_css(), m.get_projected_css()]
         [us.t, us.b, them.t, them.b] = [@goal_top, @bottom(), m.goal_top, m.bottom()]

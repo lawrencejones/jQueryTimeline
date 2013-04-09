@@ -33,7 +33,7 @@
   };
 
   window.create_timeline = function(opt) {
-    var jQuery_link, script;
+    var jQuery_link, m, script;
     if (typeof $ === "undefined" || $ === null) {
       jQuery_link = 'http://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js';
       script = document.createElement('script');
@@ -42,23 +42,58 @@
       console.log('Adding jQuery');
     }
     default_settings();
-    if (!((opt.destination != null) && ((SETTINGS.start_date = parse_date(opt.start_date)) != null) && ((SETTINGS.end_date = parse_date(opt.end_date)) != null))) {
+    if (!(opt.destination != null)) {
       console.log('You are missing either destination or timeline start/end dates.');
+    } else if (!((opt.start_date != null) && (opt.end_date != null)) && (opt.moments[0] == null)) {
+      console.log('Cannot determine start and end with no moments');
     } else {
+      if (opt.start_date == null) {
+        SETTINGS.start_date = new Date((Math.min.apply(Math, (function() {
+          var _i, _len, _ref, _results;
+          _ref = opt.moments;
+          _results = [];
+          for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+            m = _ref[_i];
+            _results.push(parse_date(m.start));
+          }
+          return _results;
+        })())) - 3 * 1000 * 60 * 60 * 24);
+      } else {
+        SETTINGS.start_date = opt.start_date;
+      }
+      if (opt.end_date == null) {
+        SETTINGS.end_date = new Date((Math.max.apply(Math, (function() {
+          var _i, _len, _ref, _results;
+          _ref = opt.moments;
+          _results = [];
+          for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+            m = _ref[_i];
+            _results.push(parse_date(m.end));
+          }
+          return _results;
+        })())) + 3 * 1000 * 60 * 60 * 24);
+      } else {
+        SETTINGS.end_date = opt.end_date;
+      }
       create_interval_markers((SETTINGS.spine = create_spine(opt.destination)));
       SETTINGS.spine.data('settings', SETTINGS);
+      if (opt.moments[0] != null) {
+        if (!opt.structure) {
+          console.log('Structure required for building moments');
+        } else {
+          SETTINGS.structure = opt.structure;
+          opt.moments.map(function(m) {
+            var _ref;
+            return _ref = [parse_date(m.start), parse_date(m.end)], m.start = _ref[0], m.end = _ref[1], _ref;
+          });
+          SETTINGS.moments = opt.moments.sort(function(a, b) {
+            return a.start - b.start;
+          });
+          create_moments(SETTINGS.spine);
+        }
+      }
     }
-    if (opt.moments.length !== 0) {
-      SETTINGS.structure = opt.structure;
-      opt.moments.map(function(m) {
-        var _ref;
-        return _ref = [parse_date(m.start), parse_date(m.end)], m.start = _ref[0], m.end = _ref[1], _ref;
-      });
-      SETTINGS.moments = opt.moments.sort(function(a, b) {
-        return a.start - b.start;
-      });
-      return create_moments(SETTINGS.spine);
-    }
+    return SETTINGS.container;
   };
 
   create_spine = function(destination) {
@@ -324,7 +359,7 @@
         return m.clash_with = function(m) {
           var h, horizontal, them, us, v, vertical, _ref, _ref1, _ref2;
           vertical = function(us, them) {
-            return !((us.t > them.b) || (them.t > us.b));
+            return !((us.t > them.b - 3) || (them.t + 3 > us.b));
           };
           horizontal = function(us, them) {
             return !((us.irm < them.ilm) || (them.irm < us.ilm));
