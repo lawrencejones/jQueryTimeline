@@ -401,11 +401,7 @@
       produce_duration_wire(m);
     }
     last_index = (infos = $('.info_box')).length - 1;
-    return infos.hide().delay(400).fadeIn(300, function() {
-      if (infos.index($(this)) === last_index) {
-        return layer_moment_tooltips(SETTINGS.spine);
-      }
-    });
+    return infos.hide().delay(400).fadeIn(300);
   };
 
   layer_moment_tooltips = function(spine) {
