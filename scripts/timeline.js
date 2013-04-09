@@ -75,7 +75,7 @@
       } else {
         SETTINGS.end_date = opt.end_date;
       }
-      create_interval_markers((SETTINGS.spine = create_spine(opt.destination)));
+      create_interval_markers((SETTINGS.spine = create_spine(opt.destination, SETTINGS)));
       SETTINGS.spine.data('settings', SETTINGS);
       if (opt.moments[0] != null) {
         if (!opt.structure) {
@@ -96,7 +96,7 @@
     return SETTINGS.container;
   };
 
-  create_spine = function(destination) {
+  create_spine = function(destination, SETTINGS) {
     var draw_origin_circle, id, spine_left;
     draw_origin_circle = function() {
       var circle;
@@ -121,13 +121,9 @@
     spine_left = SETTINGS.spine_buffer;
     id = "timeline" + ($('.timeline_container').length);
     SETTINGS.container = $("<div/ id='" + id + "' class='timeline_container'>").appendTo(destination);
-    return $('<div/ class="spine">').appendTo(SETTINGS.container).css({
+    return SETTINGS.spine = $('<div/ class="spine">').appendTo(SETTINGS.container).css({
       left: spine_left + '%',
-      width: 0
-    }).animate({
       width: 97 - spine_left + '%'
-    }, {
-      duration: 400
     }).append(draw_origin_circle().addClass('origin').delay(400).fadeIn(300).data('settings', SETTINGS));
   };
 
@@ -311,14 +307,14 @@
         };
         m.get_projected_css = function() {
           var c, i, ih, iml, iw, left, leftmost, ml_pct, rightmost, spine_width, width_pct, _ref;
-          i = c = this.collapsed;
+          i = (c = this.collapsed);
           if (this.is_expanded) {
             i = this.expanded;
           }
           _ref = [i.css.w, i.css.h, -c.css.w / 2], iw = _ref[0], ih = _ref[1], iml = _ref[2];
-          spine_width = parseFloat(spine.width());
+          spine_width = parseFloat(this.spine.width());
           ml_pct = 100 * iml / spine_width;
-          leftmost = ml_pct + (left = SETTINGS.date_to_marker_left_pct(m.start));
+          leftmost = ml_pct + (left = this.spine.data('settings').date_to_marker_left_pct(this.start));
           rightmost = leftmost + (width_pct = 100 * iw / spine_width);
           return {
             l: left,
@@ -337,7 +333,7 @@
         };
         m.set_initial_top = function() {
           var css, hs, i, left_index, priority, right_index, top;
-          css = m.get_projected_css();
+          css = this.get_projected_css();
           left_index = Math.floor(((css.ilm - SETTINGS.pct_buffer_for_markers) / SETTINGS.pct_per_interval()) - 1);
           right_index = Math.floor(((css.irm - SETTINGS.pct_buffer_for_markers) / SETTINGS.pct_per_interval()) + 2);
           priority = Math.max.apply(Math, (function() {
@@ -401,7 +397,7 @@
       produce_duration_wire(m);
     }
     last_index = (infos = $('.info_box')).length - 1;
-    return infos.hide().delay(400).fadeIn(300);
+    return layer_moment_tooltips(spine);
   };
 
   layer_moment_tooltips = function(spine) {
@@ -445,7 +441,7 @@
           _results1 = [];
           for (_j = 0, _len1 = moments.length; _j < _len1; _j++) {
             fm = moments[_j];
-            if (fm.fixed && m.id !== fm.id) {
+            if (fm.fixed && m !== fm) {
               _results1.push(fm);
             }
           }
