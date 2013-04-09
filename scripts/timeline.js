@@ -213,13 +213,26 @@
       produce_expanded_elem = function(m) {
         var expanded, href, i, key, keys, link, names, text, _i, _j, _len, _len1, _ref;
         expanded = $('<div/ class="info_elem expanded">');
-        text = m.collapsed.elem.text() + ' - ';
-        _ref = SETTINGS.structure.extendedTitle;
-        for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-          key = _ref[_i];
-          text += m[key] + ', ';
+        text = m.collapsed.elem.text();
+        if (Math.max.apply(Math, ((function() {
+          var _i, _len, _ref, _results;
+          _ref = SETTINGS.structure.extendedTitle;
+          _results = [];
+          for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+            key = _ref[_i];
+            _results.push(m[key].slice(0).replace(/\s/g, '').length);
+          }
+          return _results;
+        })())) !== 0) {
+          text += ' - ';
+          _ref = SETTINGS.structure.extendedTitle;
+          for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+            key = _ref[_i];
+            text += m[key] + ', ';
+          }
+          text = text.slice(0, -2);
         }
-        m.collapsed.elem.clone().addClass('expanded').css('display', 'block').text(text.slice(0, -2)).appendTo(expanded);
+        m.collapsed.elem.clone().addClass('expanded').css('display', 'block').text(text).appendTo(expanded);
         text = '';
         names = SETTINGS.structure.content.names;
         keys = SETTINGS.structure.content.keys;
