@@ -621,6 +621,7 @@
       background: c,
       height: r,
       width: r,
+      'border-radius': r,
       '-moz-border-radius': r,
       '-webkit-border-radius': r,
       marginTop: -r / 2,
