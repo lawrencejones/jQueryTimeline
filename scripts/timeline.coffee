@@ -277,7 +277,7 @@ create_moments = (spine) ->
 
       m.clash_with = (m) ->
         vertical = (us, them) -> !((us.t > them.b-3) or (them.t+3 > us.b))
-        horizontal = (us, them) -> !((us.irm < them.ilm) or (them.irm < us.ilm))
+        horizontal = (us, them) -> !((us.irm < them.ilm-5) or (them.irm < us.ilm -5))
         [us, them] = [@get_projected_css(), m.get_projected_css()]
         [us.t, us.b, them.t, them.b] = [@goal_top, @bottom(), m.goal_top, m.bottom()]
         [v, h] = [vertical(us, them), horizontal(us,them)]
